@@ -34,27 +34,19 @@ export async function getTencentApp() {
 
   try {
     const cloudbase = await getCloudbase();
-    app = cloudbase.init({ env: envId });
+    const accessKey = process.env.NEXT_PUBLIC_TENCENT_CLOUDBASE_ACCESS_KEY;
 
-    // Anonymous auth — required for database/storage operations.
-    // CloudBase disables anonymous login by default for new environments.
-    // Enable it in console: Auth → Login Methods → Anonymous Login.
-    try {
-      const auth = app.auth();
-      const { data: session } = await auth.getSession();
-      if (!session) {
-        await auth.signInAnonymously();
-        console.log("[Tencent CloudBase] Signed in anonymously.");
-      }
-    } catch (authErr) {
-      console.error(
-        "[Tencent CloudBase] Anonymous sign-in failed. " +
-        "Enable anonymous login in CloudBase console: " +
-        "Auth → Login Methods → Anonymous Login.",
-        authErr
+    app = cloudbase.init({
+      env: envId,
+      ...(accessKey ? { accessKey } : {}),
+    });
+
+    if (!accessKey) {
+      console.warn(
+        "[Tencent CloudBase] No accessKey configured. " +
+        "Set NEXT_PUBLIC_TENCENT_CLOUDBASE_ACCESS_KEY in EdgeOne env vars. " +
+        "Get it from: CloudBase console → Environment Settings → API Keys → Publishable Key"
       );
-      // Don't null the app — let the caller decide. Some operations might
-      // work without auth if security rules are fully permissive.
     }
   } catch (err) {
     console.error("[Tencent CloudBase] Init failed:", err);

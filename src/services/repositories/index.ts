@@ -3,14 +3,13 @@
  *
  * Layer: Storage Layer (⬛)
  *
- * Usage:
- *   import { projectRepository, audioRepository, workRepository, guestRepository }
- *     from "@/services/repositories";
+ * Resolution logic:
  *
- * These singletons are resolved at module load time based on
- * NEXT_PUBLIC_HEYIN_STORAGE_MODE.
- * - "local" (default) → localStorage + IndexedDB
- * - "cloud"           → Supabase (projectRepository is ready, others TBD)
+ *   STORAGE_MODE=local  → local repos (localStorage + IndexedDB)
+ *   STORAGE_MODE=cloud + PROVIDER=supabase → Supabase repos
+ *   STORAGE_MODE=cloud + PROVIDER=tencent  → THROW not-implemented error
+ *
+ *   Local mode ignores the provider env entirely.
  */
 
 import type {
@@ -20,12 +19,14 @@ import type {
   GuestRepository,
 } from "./types";
 import { isCloudRepositoryMode } from "./repositoryMode";
+import { isTencentProvider } from "./cloudProvider";
 import { localProjectRepository } from "./local/localProjectRepository";
 import { localAudioRepository } from "./local/localAudioRepository";
 import { localWorkRepository } from "./local/localWorkRepository";
 import { localGuestRepository } from "./local/localGuestRepository";
 import { supabaseProjectRepository } from "./supabase/supabaseProjectRepository";
 import { supabaseAudioRepository } from "./supabase/supabaseAudioRepository";
+import { throwTencentNotImplemented } from "./tencent/notImplemented";
 
 // Re-export for direct access
 export { supabaseProjectRepository, supabaseAudioRepository };
@@ -33,19 +34,32 @@ export { supabaseProjectRepository, supabaseAudioRepository };
 // --- Repository resolution ---
 
 function resolveProjectRepository(): ProjectRepository {
-  if (isCloudRepositoryMode()) return supabaseProjectRepository;
-  return localProjectRepository;
+  if (!isCloudRepositoryMode()) return localProjectRepository;
+  if (isTencentProvider()) return throwTencentNotImplemented("Project");
+  return supabaseProjectRepository;
 }
 
 function resolveAudioRepository(): AudioRepository {
-  if (isCloudRepositoryMode()) return supabaseAudioRepository;
-  return localAudioRepository;
+  if (!isCloudRepositoryMode()) return localAudioRepository;
+  if (isTencentProvider()) return throwTencentNotImplemented("Audio");
+  return supabaseAudioRepository;
 }
 
-// TODO: Commit 9 adds supabaseWorkRepository.
-// TODO: Commit 10 adds supabaseGuestRepository.
+function resolveWorkRepository(): WorkRepository {
+  if (!isCloudRepositoryMode()) return localWorkRepository;
+  if (isTencentProvider()) return throwTencentNotImplemented("Work");
+  // TODO: Commit 9 adds supabaseWorkRepository. Fallback to local for now.
+  return localWorkRepository;
+}
+
+function resolveGuestRepository(): GuestRepository {
+  if (!isCloudRepositoryMode()) return localGuestRepository;
+  if (isTencentProvider()) return throwTencentNotImplemented("Guest");
+  // TODO: Commit 10 adds supabaseGuestRepository. Fallback to local for now.
+  return localGuestRepository;
+}
 
 export const projectRepository: ProjectRepository = resolveProjectRepository();
 export const audioRepository: AudioRepository = resolveAudioRepository();
-export const workRepository: WorkRepository = localWorkRepository;
-export const guestRepository: GuestRepository = localGuestRepository;
+export const workRepository: WorkRepository = resolveWorkRepository();
+export const guestRepository: GuestRepository = resolveGuestRepository();

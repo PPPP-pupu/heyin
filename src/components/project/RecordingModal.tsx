@@ -43,6 +43,7 @@ export default function RecordingModal({
   const [nickname, setNickname] = useState(defaultNickname ?? "");
   const [province, setProvince] = useState(defaultProvince ?? "");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   /* eslint-disable react-hooks/set-state-in-effect -- syncing prop-derived defaults */
   useEffect(() => {
@@ -65,9 +66,13 @@ export default function RecordingModal({
 
   async function handleSubmit() {
     if (!nickname.trim() || isSubmitting) return;
+    setSubmitError(null);
     setIsSubmitting(true);
     try {
       await onSubmit({ nickname: nickname.trim(), province: province.trim() });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Upload failed. Please try again.";
+      setSubmitError(`Upload failed: ${msg}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -147,6 +152,13 @@ export default function RecordingModal({
         {/* === RECORDED STATE === */}
         {state === "recorded" && (
           <div className="mb-6 flex flex-col gap-4">
+            {/* Submit error banner */}
+            {submitError && (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {submitError}
+              </div>
+            )}
+
             {/* Audio preview */}
             {audioBlobUrl && (
               <div className="rounded-2xl bg-gray-50 p-4">

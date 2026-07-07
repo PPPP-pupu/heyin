@@ -198,8 +198,42 @@ export const supabaseProjectRepository: ProjectRepository = {
 
   async deleteProject(projectId) {
     const d = db();
+
+    // Collect audio paths from voice_submissions for Storage cleanup
+    const { data: subs } = await d
+      .from("voice_submissions")
+      .select("audio_path")
+      .eq("project_id", projectId);
+
+    const warnings: string[] = [];
+
+    // Best-effort Storage cleanup
+    if (subs && subs.length > 0) {
+      const paths: string[] = subs
+        .map((s: { audio_path: string }) => s.audio_path)
+        .filter((p: string) => p && !p.startsWith("http"));
+
+      if (paths.length > 0) {
+        try {
+          const { error: storageErr } = await d.storage
+            .from("heyin-audio")
+            .remove(paths);
+          if (storageErr) {
+            warnings.push(`Storage cleanup warning: ${storageErr.message}`);
+          }
+        } catch (err) {
+          warnings.push(`Storage cleanup warning: ${err instanceof Error ? err.message : "unknown"}`);
+        }
+      }
+    }
+
+    // Delete project row — cascade deletes lyric_lines, voice_slots, voice_submissions, etc.
     const { error } = await d.from("projects").delete().eq("id", projectId);
     if (error) throw new Error(`Failed to delete project: ${error.message}`);
+
+    if (warnings.length > 0) {
+      console.warn("[Heyin] deleteProject:", warnings.join("; "));
+    }
   },
 
   async deleteAllProjects() {

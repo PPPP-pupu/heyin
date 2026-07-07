@@ -58,6 +58,14 @@ create policy "Public upload audio"
   on storage.objects for insert
   with check (bucket_id = 'heyin-audio');
 
+-- Public delete — anyone can delete audio from the bucket (MVP ONLY)
+-- ⚠️ UNSAFE for production: anyone can delete any file.
+-- Post-MVP: restrict to the uploader or project owner.
+drop policy if exists "Public delete audio" on storage.objects;
+create policy "Public delete audio"
+  on storage.objects for delete
+  using (bucket_id = 'heyin-audio');
+
 -- ============================================================================
 -- RECOMMENDED PATH CONVENTIONS
 -- ============================================================================

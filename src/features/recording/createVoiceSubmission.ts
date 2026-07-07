@@ -11,8 +11,10 @@ import { getAudioExtension } from "@/services/supabase/storageUrls";
  * Local mode: saves blob to IndexedDB, audioId = IndexedDB key.
  * Cloud mode: uploads blob to Supabase Storage, audioId = Storage path.
  *
- * The caller (useSubmitRecording) passes projectId so we can build
- * the Storage path: projects/{projectId}/submissions/{submissionId}.{ext}
+ * In cloud mode, submission.id is a UUID (crypto.randomUUID()) because
+ * Supabase voice_submissions.id is a UUID column that rejects sub-xxx.
+ *
+ * Cloud Storage path: projects/{projectId}/submissions/{submissionId}.{ext}
  */
 export async function createVoiceSubmission(input: {
   slotId: string;
@@ -25,18 +27,21 @@ export async function createVoiceSubmission(input: {
   /** Required for cloud Storage path construction. */
   projectId: string;
 }): Promise<VoiceSubmission> {
-  const submissionId = generateId("sub-");
   const isCloud = isCloudRepositoryMode();
+
+  // Cloud: UUID for Supabase voice_submissions.id column
+  // Local: prefixed id (backward compatible)
+  const submissionId = isCloud
+    ? crypto.randomUUID()
+    : generateId("sub-");
 
   let audioId: string;
 
   if (isCloud) {
-    // Cloud mode: upload to Supabase Storage
     const ext = getAudioExtension(input.audioBlob.type);
     const path = `projects/${input.projectId}/submissions/${submissionId}.${ext}`;
     audioId = await audioRepository.saveAudio(input.audioBlob, path);
   } else {
-    // Local mode: save to IndexedDB
     audioId = await saveAudio(input.audioBlob);
   }
 

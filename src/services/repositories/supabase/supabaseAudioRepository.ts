@@ -32,10 +32,15 @@ export const supabaseAudioRepository: AudioRepository = {
       .from(BUCKET)
       .upload(path, blob, {
         contentType: blob.type || "audio/webm",
-        upsert: true,
+        upsert: false,
       });
 
-    if (error) throw new Error(`Failed to upload audio: ${error.message}`);
+    if (error) {
+      throw new Error(
+        `Failed to upload audio to ${BUCKET}/${path}: ${error.message}. ` +
+        `Blob type=${blob.type || "unknown"}, size=${blob.size} bytes.`
+      );
+    }
 
     // Return the Storage path, not the public URL
     return path;
@@ -44,7 +49,6 @@ export const supabaseAudioRepository: AudioRepository = {
   async loadAudio(idOrPath) {
     const client = requireClient();
 
-    // If it's already a full URL, fetch it directly
     if (idOrPath.startsWith("http://") || idOrPath.startsWith("https://")) {
       try {
         const res = await fetch(idOrPath);
@@ -55,7 +59,6 @@ export const supabaseAudioRepository: AudioRepository = {
       }
     }
 
-    // Otherwise treat it as a Storage path — download via Supabase
     try {
       const { data, error } = await client.storage
         .from(BUCKET)
@@ -71,13 +74,11 @@ export const supabaseAudioRepository: AudioRepository = {
   async deleteAudio(idOrPath) {
     const client = requireClient();
 
-    // Extract path from URL if needed
     let path = idOrPath;
     if (path.startsWith("http://") || path.startsWith("https://")) {
-      // Try to extract the path portion from a Supabase Storage URL
       const match = path.match(/\/storage\/v1\/object\/public\/heyin-audio\/(.+)/);
       if (match) path = match[1];
-      else return; // Can't parse — skip deletion
+      else return;
     }
 
     const { error } = await client.storage.from(BUCKET).remove([path]);

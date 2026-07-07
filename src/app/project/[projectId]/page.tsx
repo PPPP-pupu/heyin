@@ -1,6 +1,7 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import AppShell from "@/components/common/AppShell";
 import AppHeader from "@/components/common/AppHeader";
 import SecondaryButton from "@/components/common/SecondaryButton";
@@ -20,7 +21,13 @@ import { isCloudRepositoryMode } from "@/services/repositories/repositoryMode";
 
 export default function ProjectDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const projectId = params.projectId as string;
+
+  // Delete state
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const {
     project,
@@ -93,6 +100,25 @@ export default function ProjectDetailPage() {
     });
     clearSelection();
     recorder.resetRecording();
+  }
+
+  // Delete project
+  async function handleDelete() {
+    if (!project) return;
+    if (!deleteConfirm) {
+      setDeleteConfirm(true);
+      return;
+    }
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      await projectRepository.deleteProject(project.id);
+      router.push("/explore");
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete project.");
+      setIsDeleting(false);
+      setDeleteConfirm(false);
+    }
   }
 
   // Loading state
@@ -246,6 +272,50 @@ export default function ProjectDetailPage() {
             Cloud submissions are enabled. Share the link for others to join and record.
           </div>
         )}
+
+        {/* Delete project — MVP: without auth, deletion is not owner-secured */}
+        <div className="mt-6 border-t border-gray-100 pt-4">
+          {deleteError && (
+            <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">
+              {deleteError}
+            </div>
+          )}
+          {!deleteConfirm ? (
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 transition-colors"
+            >
+              Delete Project
+            </button>
+          ) : (
+            <div className="rounded-xl border-2 border-red-300 bg-red-50 p-3">
+              <p className="text-sm font-semibold text-red-700">
+                Delete this project and all recordings?
+              </p>
+              <p className="mt-1 text-xs text-red-500">
+                This will permanently delete the project, all voice submissions, and all audio files. This cannot be undone.
+              </p>
+              <div className="mt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="rounded-lg bg-red-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
+                >
+                  {isDeleting ? "Deleting..." : "Yes, Delete Forever"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeleteConfirm(false)}
+                  className="rounded-lg border border-gray-200 px-4 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Lyric lines and voice slots */}
         <div className="mt-6 flex flex-col gap-4 pb-10">

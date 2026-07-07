@@ -1,12 +1,14 @@
 import type { AudioTrack } from "./audioTypes";
 import { loadAudio } from "@/services/storage/audioStorage";
+import { isCloudbaseFileID, resolveTencentAudioUrl } from "@/services/tencent/storageUrls";
 
 /**
  * AudioManager — centralized audio element controller.
  *
- * Handles both local (IndexedDB) and remote audio sources.
+ * Handles local (IndexedDB), remote URL, and Tencent CloudBase (cloud://) audio sources.
  * For local audio: loads Blob from IndexedDB → creates object URL → plays.
- * For remote audio: uses URL directly.
+ * For remote URL: uses URL directly.
+ * For Tencent cloud:// fileID: resolves to temp URL at play time.
  *
  * Lifecycle: owned by PlaybackEngine. One manager per playback session.
  *
@@ -30,7 +32,7 @@ export function createAudioManager(): AudioManager {
   async function getPlayableUrl(track: AudioTrack): Promise<string> {
     // If we already have an element with a loaded URL, reuse it
     const existing = elements.get(track.id);
-    if (existing && existing.src) return existing.src;
+    if (existing && existing.src && existing.src !== window.location.href) return existing.src;
 
     // For local audio, load from IndexedDB
     const ref = track.source;
@@ -45,7 +47,17 @@ export function createAudioManager(): AudioManager {
       return "";
     }
 
-    // Remote audio — use URL directly
+    // For CloudBase fileID (cloud://...), resolve to temp URL first
+    if (isCloudbaseFileID(ref.id)) {
+      try {
+        return await resolveTencentAudioUrl(ref.id);
+      } catch {
+        // Resolution failed — silent
+        return "";
+      }
+    }
+
+    // Remote audio (http/https URL or resolved path) — use directly
     return ref.id;
   }
 

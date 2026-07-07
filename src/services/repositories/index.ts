@@ -7,7 +7,7 @@
  *
  *   STORAGE_MODE=local  → local repos (localStorage + IndexedDB)
  *   STORAGE_MODE=cloud + PROVIDER=supabase → Supabase repos
- *   STORAGE_MODE=cloud + PROVIDER=tencent  → Tencent project + unsupported audio/work
+ *   STORAGE_MODE=cloud + PROVIDER=tencent  → Tencent project + Tencent audio + unsupported work
  *
  *   Local mode ignores the provider env entirely.
  */
@@ -27,8 +27,8 @@ import { localGuestRepository } from "./local/localGuestRepository";
 import { supabaseProjectRepository } from "./supabase/supabaseProjectRepository";
 import { supabaseAudioRepository } from "./supabase/supabaseAudioRepository";
 import { tencentProjectRepository } from "./tencent/tencentProjectRepository";
+import { tencentAudioRepository } from "./tencent/tencentAudioRepository";
 import {
-  unsupportedTencentAudioRepository,
   unsupportedTencentWorkRepository,
 } from "./tencent/unsupportedTencentRepositories";
 
@@ -37,6 +37,7 @@ export {
   supabaseProjectRepository,
   supabaseAudioRepository,
   tencentProjectRepository,
+  tencentAudioRepository,
 };
 
 // --- Repository resolution ---
@@ -49,7 +50,7 @@ function resolveProjectRepository(): ProjectRepository {
 
 function resolveAudioRepository(): AudioRepository {
   if (!isCloudRepositoryMode()) return localAudioRepository;
-  if (isTencentProvider()) return unsupportedTencentAudioRepository;
+  if (isTencentProvider()) return tencentAudioRepository;
   return supabaseAudioRepository;
 }
 

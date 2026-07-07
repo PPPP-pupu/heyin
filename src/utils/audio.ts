@@ -1,16 +1,23 @@
 import { loadAudio } from "@/services/storage/audioStorage";
 import { isCloudRepositoryMode } from "@/services/repositories/repositoryMode";
+import { isTencentProvider } from "@/services/repositories/cloudProvider";
 import {
   getPublicAudioUrl,
   isExternalUrl,
   isStoragePath,
 } from "@/services/supabase/storageUrls";
+import {
+  isCloudbaseFileID as isTencentFileID,
+  resolveTencentAudioUrl,
+} from "@/services/tencent/storageUrls";
 
 /**
  * Play audio by ID or path.
  *
  * - http/https URL → play directly via new Audio(url)
- * - Storage path (projects/... or works/...) in cloud mode → resolve public URL → play
+ * - cloud:// fileID (Tencent) → resolve temp URL → play
+ * - Storage path (projects/... or works/...) in Supabase mode → resolve public URL → play
+ * - Storage path or fileID in Tencent mode → resolve temp URL → play
  * - Local IndexedDB key → load blob from IndexedDB → play
  */
 export async function playAudioId(audioIdOrPath: string): Promise<void> {
@@ -20,8 +27,14 @@ export async function playAudioId(audioIdOrPath: string): Promise<void> {
     if (isExternalUrl(audioIdOrPath)) {
       // Already a full URL — play directly
       url = audioIdOrPath;
+    } else if (isTencentFileID(audioIdOrPath)) {
+      // Tencent CloudBase fileID (cloud://...) — resolve to temp URL
+      url = await resolveTencentAudioUrl(audioIdOrPath);
+    } else if (isCloudRepositoryMode() && isTencentProvider() && isStoragePath(audioIdOrPath)) {
+      // Tencent mode with plain storage path — try to resolve
+      url = await resolveTencentAudioUrl(audioIdOrPath);
     } else if (isCloudRepositoryMode() && isStoragePath(audioIdOrPath)) {
-      // Cloud Storage path — resolve to public URL
+      // Supabase cloud Storage path — resolve to public URL
       url = getPublicAudioUrl(audioIdOrPath);
     } else {
       // Local IndexedDB key — load blob, create object URL

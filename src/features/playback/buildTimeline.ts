@@ -2,6 +2,8 @@ import type { ChorusProject } from "@/types/project";
 import { createLocalRef, createRemoteRef } from "@/features/audio/audioReference";
 import { isExternalUrl, isStoragePath, getPublicAudioUrl } from "@/services/supabase/storageUrls";
 import { isCloudRepositoryMode } from "@/services/repositories/repositoryMode";
+import { isTencentProvider } from "@/services/repositories/cloudProvider";
+import { isCloudbaseFileID } from "@/services/tencent/storageUrls";
 import { generateId } from "@/utils/id";
 import type { PlaybackTimeline, TimelineLine, TimelineTrack } from "./timelineTypes";
 
@@ -9,6 +11,13 @@ import type { PlaybackTimeline, TimelineLine, TimelineTrack } from "./timelineTy
  * Converts a ChorusProject into a PlaybackTimeline with absolute timing.
  *
  * Pure function — no side effects.
+ *
+ * TODO CN-7/CN-8: Full chorus playback for Tencent cloud:// fileIDs requires
+ * async resolution before AudioManager can use them. Currently, individual
+ * voice bubble playback works via playAudioId() which resolves fileIDs at
+ * play time. For full chorus playback, either:
+ *   a) Pre-resolve all fileIDs before calling buildTimeline, or
+ *   b) Update AudioManager to support async URL resolution for remote refs.
  */
 export function buildTimeline(project: ChorusProject): PlaybackTimeline {
   const filled = project.voiceSlots.filter(
@@ -39,8 +48,17 @@ export function buildTimeline(project: ChorusProject): PlaybackTimeline {
       let source;
       if (isExternalUrl(id)) {
         source = createRemoteRef(id);
+      } else if (isCloudbaseFileID(id)) {
+        // Tencent CloudBase fileID — store as remote ref; AudioManager
+        // will resolve cloud:// fileIDs at playback time (CN-7).
+        source = createRemoteRef(id);
       } else if (isCloudRepositoryMode() && isStoragePath(id)) {
-        source = createRemoteRef(getPublicAudioUrl(id));
+        if (isTencentProvider()) {
+          // Tencent plain path — treat as remote (AudioManager resolves)
+          source = createRemoteRef(id);
+        } else {
+          source = createRemoteRef(getPublicAudioUrl(id));
+        }
       } else {
         source = createLocalRef(id);
       }

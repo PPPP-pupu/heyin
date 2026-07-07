@@ -7,7 +7,7 @@
  *
  *   STORAGE_MODE=local  → local repos (localStorage + IndexedDB)
  *   STORAGE_MODE=cloud + PROVIDER=supabase → Supabase repos
- *   STORAGE_MODE=cloud + PROVIDER=tencent  → THROW not-implemented error
+ *   STORAGE_MODE=cloud + PROVIDER=tencent  → Tencent project + unsupported audio/work
  *
  *   Local mode ignores the provider env entirely.
  */
@@ -26,36 +26,42 @@ import { localWorkRepository } from "./local/localWorkRepository";
 import { localGuestRepository } from "./local/localGuestRepository";
 import { supabaseProjectRepository } from "./supabase/supabaseProjectRepository";
 import { supabaseAudioRepository } from "./supabase/supabaseAudioRepository";
-import { throwTencentNotImplemented } from "./tencent/notImplemented";
+import { tencentProjectRepository } from "./tencent/tencentProjectRepository";
+import {
+  unsupportedTencentAudioRepository,
+  unsupportedTencentWorkRepository,
+} from "./tencent/unsupportedTencentRepositories";
 
-// Re-export for direct access
-export { supabaseProjectRepository, supabaseAudioRepository };
+// Re-export
+export {
+  supabaseProjectRepository,
+  supabaseAudioRepository,
+  tencentProjectRepository,
+};
 
 // --- Repository resolution ---
 
 function resolveProjectRepository(): ProjectRepository {
   if (!isCloudRepositoryMode()) return localProjectRepository;
-  if (isTencentProvider()) return throwTencentNotImplemented("Project");
+  if (isTencentProvider()) return tencentProjectRepository;
   return supabaseProjectRepository;
 }
 
 function resolveAudioRepository(): AudioRepository {
   if (!isCloudRepositoryMode()) return localAudioRepository;
-  if (isTencentProvider()) return throwTencentNotImplemented("Audio");
+  if (isTencentProvider()) return unsupportedTencentAudioRepository;
   return supabaseAudioRepository;
 }
 
 function resolveWorkRepository(): WorkRepository {
   if (!isCloudRepositoryMode()) return localWorkRepository;
-  if (isTencentProvider()) return throwTencentNotImplemented("Work");
-  // TODO: Commit 9 adds supabaseWorkRepository. Fallback to local for now.
-  return localWorkRepository;
+  if (isTencentProvider()) return unsupportedTencentWorkRepository;
+  return localWorkRepository; // TODO: Commit 9 supabaseWorkRepository
 }
 
 function resolveGuestRepository(): GuestRepository {
   if (!isCloudRepositoryMode()) return localGuestRepository;
-  if (isTencentProvider()) return throwTencentNotImplemented("Guest");
-  // TODO: Commit 10 adds supabaseGuestRepository. Fallback to local for now.
+  // Tencent cloud mode: keep local guest profile for now
   return localGuestRepository;
 }
 

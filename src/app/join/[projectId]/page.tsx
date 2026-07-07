@@ -14,6 +14,7 @@ import { useSubmitRecording } from "@/features/recording/useSubmitRecording";
 import { useGuestProfile } from "@/hooks/useGuestProfile";
 import { projectRepository } from "@/services/repositories";
 import { isCloudRepositoryMode } from "@/services/repositories/repositoryMode";
+import { isTencentProvider } from "@/services/repositories/cloudProvider";
 import { playAudioId } from "@/utils/audio";
 import type { VoiceSlot } from "@/types/project";
 
@@ -21,6 +22,7 @@ export default function JoinPage() {
   const params = useParams();
   const routeParam = params.projectId as string;
   const isCloud = isCloudRepositoryMode();
+  const isTencent = isTencentProvider();
 
   // In cloud mode: route param may be shareId — resolve via loadProjectByShareId first.
   // In local mode: route param is projectId — load directly.
@@ -289,8 +291,8 @@ export default function JoinPage() {
         currentGuestId={profile?.id}
       />
 
-      {/* Recording modal — enabled for both local and cloud mode */}
-      {selectedSlot && (
+      {/* Recording modal — local + Supabase cloud */}
+      {!isTencent && selectedSlot && (
         <RecordingModal
           slot={selectedSlot}
           recorder={recorder}
@@ -299,6 +301,41 @@ export default function JoinPage() {
           defaultNickname={profile?.nickname}
           defaultProvince={profile?.province}
         />
+      )}
+
+      {/* Tencent cloud claimed panel — audio upload not yet implemented (CN-5) */}
+      {isTencent && selectedSlot && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={handleModalClose} />
+          <div className="fixed inset-x-4 bottom-0 z-50 mx-auto max-w-lg animate-slide-up rounded-t-2xl bg-white p-6 shadow-xl sm:inset-x-auto sm:bottom-auto sm:top-1/2 sm:w-full sm:max-w-sm sm:-translate-y-1/2 sm:rounded-2xl"
+            style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}>
+            <div className="mb-4 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-100">
+                <span className="relative flex h-3 w-3">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+                  <span className="relative inline-flex h-3 w-3 rounded-full bg-amber-500" />
+                </span>
+              </div>
+              <p className="mt-3 text-lg font-semibold text-gray-900">Slot Claimed</p>
+              <p className="mt-1 text-sm text-gray-500">&ldquo;{selectedSlot.lyricText}&rdquo;</p>
+            </div>
+            <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 text-center">
+              Tencent audio upload will be enabled in CN-5.<br />
+              Recording submissions are currently disabled in Tencent cloud mode.
+            </div>
+            <button type="button" onClick={handleModalClose}
+              className="w-full rounded-xl border border-red-200 px-5 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 active:bg-red-100 transition-colors">
+              Release Slot
+            </button>
+          </div>
+          <style jsx>{`
+            @keyframes slide-up {
+              from { transform: translateY(100%); opacity: 0; }
+              to { transform: translateY(0); opacity: 1; }
+            }
+            .animate-slide-up { animation: slide-up 0.25s ease-out; }
+          `}</style>
+        </>
       )}
     </AppShell>
   );

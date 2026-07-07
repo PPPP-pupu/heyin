@@ -72,7 +72,9 @@ export default function RecordingModal({
       await onSubmit({ nickname: nickname.trim(), province: province.trim() });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Upload failed. Please try again.";
-      setSubmitError(`Upload failed: ${msg}`);
+      // Trim long error messages for mobile display
+      const short = msg.length > 120 ? msg.slice(0, 120) + "..." : msg;
+      setSubmitError(short);
     } finally {
       setIsSubmitting(false);
     }
@@ -86,8 +88,8 @@ export default function RecordingModal({
         onClick={onClose}
       />
 
-      {/* Modal card */}
-      <div className="fixed inset-x-4 bottom-0 z-50 mx-auto max-w-lg animate-slide-up rounded-t-2xl bg-white p-6 shadow-xl sm:inset-x-auto sm:bottom-auto sm:top-1/2 sm:w-full sm:max-w-sm sm:-translate-y-1/2 sm:rounded-2xl">
+      {/* Modal card — scrollable on mobile */}
+      <div className="fixed inset-x-4 bottom-0 z-50 mx-auto max-w-lg animate-slide-up rounded-t-2xl bg-white p-6 shadow-xl overflow-y-auto max-h-[85vh] sm:inset-x-auto sm:bottom-auto sm:top-1/2 sm:w-full sm:max-w-sm sm:-translate-y-1/2 sm:rounded-2xl sm:max-h-[90vh]">
         {/* Lyric text */}
         <div className="mb-6 text-center">
           <p className="text-xs font-medium uppercase tracking-wide text-gray-400">

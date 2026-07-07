@@ -59,7 +59,10 @@ export default function CreatePage() {
       router.push(`/project/${savedProject.id}`);
     } catch (err) {
       console.error("[CreatePage] saveProject failed:", err);
-      const msg = err instanceof Error ? err.message : "Failed to save project. Please try again.";
+      // Show the most detailed error info available
+      const msg = err instanceof Error
+        ? err.message
+        : (typeof err === "string" ? err : JSON.stringify(err) || "Failed to save project. Please try again.");
       setSaveError(msg);
       setIsSubmitting(false);
     }

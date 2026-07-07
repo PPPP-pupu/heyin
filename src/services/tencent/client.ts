@@ -31,7 +31,8 @@ export async function getTencentApp() {
   try {
     const cloudbase = await getCloudbase();
     app = cloudbase.init({ env: envId });
-  } catch {
+  } catch (err) {
+    console.error("[Tencent CloudBase] Init failed:", err);
     app = null;
   }
   return app;

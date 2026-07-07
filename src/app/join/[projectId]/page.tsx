@@ -64,6 +64,7 @@ export default function JoinPage() {
   const [gateNickname, setGateNickname] = useState("");
   const [claimedSlotId, setClaimedSlotId] = useState<string | null>(null);
   const [claimError, setClaimError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect */
@@ -96,6 +97,7 @@ export default function JoinPage() {
     if (slot.status !== "empty") return;
 
     setClaimError(null);
+    setSubmitError(null);
     try {
       const updated = await projectRepository.claimSlot(project, slot.id, profile.id);
       if (!updated) {
@@ -104,8 +106,15 @@ export default function JoinPage() {
       }
       setProject(updated);
       setClaimedSlotId(slot.id);
-      const claimedSlot = updated.voiceSlots.find((s) => s.id === slot.id);
-      if (claimedSlot) setSelectedSlot(claimedSlot);
+      // Optimistic local update — avoids Supabase read-after-write race
+      // where the reloaded project might not reflect the UPDATE yet.
+      const claimedSlot: VoiceSlot = {
+        ...slot,
+        status: "claimed",
+        claimedBy: profile.id,
+        claimedAt: new Date().toISOString(),
+      };
+      setSelectedSlot(claimedSlot);
     } catch (err) {
       setClaimError(err instanceof Error ? err.message : "Failed to claim slot.");
     }
@@ -123,25 +132,32 @@ export default function JoinPage() {
     }
     setClaimedSlotId(null);
     setClaimError(null);
+    setSubmitError(null);
     recorder.resetRecording();
     clearSelection();
   }
 
   async function handleRecordingSubmit(data: { nickname: string; province: string }) {
     if (!selectedSlot || !recorder.audioBlob || !project) return;
-    await submitRecording_.submit({
-      slotId: selectedSlot.id,
-      lineIndex: selectedSlot.lineIndex,
-      guestId: profile?.id,
-      nickname: data.nickname,
-      province: data.province,
-      audioBlob: recorder.audioBlob,
-      durationSec: recorder.elapsedMs / 1000,
-      projectId: project.id,
-    });
-    setClaimedSlotId(null);
-    clearSelection();
-    recorder.resetRecording();
+    setSubmitError(null);
+    try {
+      await submitRecording_.submit({
+        slotId: selectedSlot.id,
+        lineIndex: selectedSlot.lineIndex,
+        guestId: profile?.id,
+        nickname: data.nickname,
+        province: data.province,
+        audioBlob: recorder.audioBlob,
+        durationSec: recorder.elapsedMs / 1000,
+        projectId: project.id,
+      });
+      setClaimedSlotId(null);
+      clearSelection();
+      recorder.resetRecording();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Submit failed. Please try again.";
+      setSubmitError(msg);
+    }
   }
 
   function handleSlotPlay(slot: VoiceSlot) {
@@ -252,10 +268,15 @@ export default function JoinPage() {
         </div>
       )}
 
-      {/* Claim error */}
+      {/* Claim / Submit errors */}
       {claimError && (
         <div className="mx-4 mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
           {claimError}
+        </div>
+      )}
+      {submitError && (
+        <div className="mx-4 mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+          {submitError}
         </div>
       )}
 

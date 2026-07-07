@@ -81,7 +81,7 @@ export default function ProjectDetailPage() {
   }
 
   async function handleRecordingSubmit(data: { nickname: string; province: string }) {
-    if (!selectedSlot || !recorder.audioBlob) return;
+    if (!selectedSlot || !recorder.audioBlob || !project) return;
     await submitRecording_.submit({
       slotId: selectedSlot.id,
       lineIndex: selectedSlot.lineIndex,
@@ -89,6 +89,7 @@ export default function ProjectDetailPage() {
       province: data.province,
       audioBlob: recorder.audioBlob,
       durationSec: recorder.elapsedMs / 1000,
+      projectId: project.id,
     });
     clearSelection();
     recorder.resetRecording();
@@ -239,11 +240,10 @@ export default function ProjectDetailPage() {
           </div>
         </div>
 
-        {/* Cloud recording notice */}
+        {/* Cloud notice — Commit 7: participants can submit via Join page */}
         {isCloud && (
-          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-            Cloud recording upload will be enabled in the next phase.
-            Recording submissions are currently disabled in cloud mode.
+          <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            Cloud submissions are enabled. Share the link for others to join and record.
           </div>
         )}
 

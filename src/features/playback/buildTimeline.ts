@@ -1,5 +1,7 @@
 import type { ChorusProject } from "@/types/project";
-import { createLocalRef } from "@/features/audio/audioReference";
+import { createLocalRef, createRemoteRef } from "@/features/audio/audioReference";
+import { isExternalUrl, isStoragePath, getPublicAudioUrl } from "@/services/supabase/storageUrls";
+import { isCloudRepositoryMode } from "@/services/repositories/repositoryMode";
 import { generateId } from "@/utils/id";
 import type { PlaybackTimeline, TimelineLine, TimelineTrack } from "./timelineTypes";
 
@@ -32,13 +34,24 @@ export function buildTimeline(project: ChorusProject): PlaybackTimeline {
 
   for (const lineIndex of sortedIndices) {
     const slots = groups.get(lineIndex)!;
-    const tracks: TimelineTrack[] = slots.map((s) => ({
-      trackId: s.submission!.id,
-      slotId: s.id,
-      source: createLocalRef(s.submission!.audioId),
-      duration: s.submission!.duration,
-      volume: 1,
-    }));
+    const tracks: TimelineTrack[] = slots.map((s) => {
+      const id = s.submission!.audioId;
+      let source;
+      if (isExternalUrl(id)) {
+        source = createRemoteRef(id);
+      } else if (isCloudRepositoryMode() && isStoragePath(id)) {
+        source = createRemoteRef(getPublicAudioUrl(id));
+      } else {
+        source = createLocalRef(id);
+      }
+      return {
+        trackId: s.submission!.id,
+        slotId: s.id,
+        source,
+        duration: s.submission!.duration,
+        volume: 1,
+      };
+    });
 
     const duration = Math.max(...tracks.map((t) => t.duration));
 

@@ -3,13 +3,14 @@
 import { useCallback } from "react";
 import type { ChorusProject } from "@/types/project";
 import { createVoiceSubmission } from "./createVoiceSubmission";
-import { submitRecording } from "@/features/project/projectActions";
+import { projectRepository } from "@/services/repositories";
 
 /**
  * useSubmitRecording — shared hook for the submit flow.
  *
- * Replaces duplicate code in Project page and Join page.
- * Both pages had the same: createVoiceSubmission → submitRecording → setProject.
+ * Works for both local and cloud modes:
+ * - createVoiceSubmission handles audio persistence (IndexedDB or Supabase Storage)
+ * - projectRepository.submitRecording handles project mutation (local or Supabase DB)
  *
  * Layer: Interaction Layer (🟨)
  */
@@ -26,6 +27,7 @@ export function useSubmitRecording(
       province: string;
       audioBlob: Blob;
       durationSec: number;
+      projectId: string;
     }) => {
       if (!project) return;
 
@@ -37,9 +39,14 @@ export function useSubmitRecording(
         province: input.province,
         audioBlob: input.audioBlob,
         duration: input.durationSec,
+        projectId: input.projectId,
       });
 
-      const updated = submitRecording(project, input.slotId, submission);
+      const updated = await projectRepository.submitRecording(
+        project,
+        input.slotId,
+        submission
+      );
       setProject(updated);
     },
     [project, setProject]

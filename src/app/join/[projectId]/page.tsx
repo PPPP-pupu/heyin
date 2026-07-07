@@ -128,7 +128,7 @@ export default function JoinPage() {
   }
 
   async function handleRecordingSubmit(data: { nickname: string; province: string }) {
-    if (!selectedSlot || !recorder.audioBlob) return;
+    if (!selectedSlot || !recorder.audioBlob || !project) return;
     await submitRecording_.submit({
       slotId: selectedSlot.id,
       lineIndex: selectedSlot.lineIndex,
@@ -137,6 +137,7 @@ export default function JoinPage() {
       province: data.province,
       audioBlob: recorder.audioBlob,
       durationSec: recorder.elapsedMs / 1000,
+      projectId: project.id,
     });
     setClaimedSlotId(null);
     clearSelection();
@@ -244,11 +245,10 @@ export default function JoinPage() {
       <GuestCard nickname={profile?.nickname ?? gateNickname}
         onChangeNickname={handleChangeNickname} />
 
-      {/* Cloud recording notice */}
+      {/* Cloud recording notice — updated for Commit 7 */}
       {isCloud && (
-        <div className="mx-4 mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-          Cloud recording upload will be enabled in the next phase.
-          Recording submissions are currently disabled in cloud mode.
+        <div className="mx-4 mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          Cloud recording is enabled. Your voice will be uploaded after submit.
         </div>
       )}
 
@@ -268,8 +268,8 @@ export default function JoinPage() {
         currentGuestId={profile?.id}
       />
 
-      {/* Recording modal — local mode */}
-      {!isCloud && selectedSlot && (
+      {/* Recording modal — enabled for both local and cloud mode */}
+      {selectedSlot && (
         <RecordingModal
           slot={selectedSlot}
           recorder={recorder}
@@ -278,51 +278,6 @@ export default function JoinPage() {
           defaultNickname={profile?.nickname}
           defaultProvince={profile?.province}
         />
-      )}
-
-      {/* Cloud claimed panel — replaces RecordingModal until Commit 7 */}
-      {isCloud && selectedSlot && (
-        <>
-          <div
-            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
-            onClick={handleModalClose}
-          />
-          <div className="fixed inset-x-4 bottom-0 z-50 mx-auto max-w-lg animate-slide-up rounded-t-2xl bg-white p-6 shadow-xl sm:inset-x-auto sm:bottom-auto sm:top-1/2 sm:w-full sm:max-w-sm sm:-translate-y-1/2 sm:rounded-2xl">
-            <div className="mb-4 text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-100">
-                <span className="relative flex h-3 w-3">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
-                  <span className="relative inline-flex h-3 w-3 rounded-full bg-amber-500" />
-                </span>
-              </div>
-              <p className="mt-3 text-lg font-semibold text-gray-900">Slot Claimed</p>
-              <p className="mt-1 text-sm text-gray-500">
-                &ldquo;{selectedSlot.lyricText}&rdquo;
-              </p>
-            </div>
-
-            <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 text-center">
-              Cloud recording upload will be enabled in the next phase.
-              Recording submissions are currently disabled in cloud mode.
-            </div>
-
-            <button
-              type="button"
-              onClick={handleModalClose}
-              className="w-full rounded-xl border border-red-200 px-5 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 active:bg-red-100 transition-colors"
-            >
-              Release Slot
-            </button>
-          </div>
-
-          <style jsx>{`
-            @keyframes slide-up {
-              from { transform: translateY(100%); opacity: 0; }
-              to { transform: translateY(0); opacity: 1; }
-            }
-            .animate-slide-up { animation: slide-up 0.25s ease-out; }
-          `}</style>
-        </>
       )}
     </AppShell>
   );

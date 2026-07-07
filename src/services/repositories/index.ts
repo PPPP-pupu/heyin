@@ -25,31 +25,27 @@ import { localAudioRepository } from "./local/localAudioRepository";
 import { localWorkRepository } from "./local/localWorkRepository";
 import { localGuestRepository } from "./local/localGuestRepository";
 import { supabaseProjectRepository } from "./supabase/supabaseProjectRepository";
+import { supabaseAudioRepository } from "./supabase/supabaseAudioRepository";
 
-// Re-export for direct access (e.g. future migration scripts, tests)
-export { supabaseProjectRepository };
+// Re-export for direct access
+export { supabaseProjectRepository, supabaseAudioRepository };
 
 // --- Repository resolution ---
 
 function resolveProjectRepository(): ProjectRepository {
-  if (isCloudRepositoryMode()) {
-    return supabaseProjectRepository;
-  }
+  if (isCloudRepositoryMode()) return supabaseProjectRepository;
   return localProjectRepository;
 }
 
-// Audio / Work / Guest cloud repositories are not yet implemented.
-// TODO: Commit 7 adds supabaseAudioRepository.
+function resolveAudioRepository(): AudioRepository {
+  if (isCloudRepositoryMode()) return supabaseAudioRepository;
+  return localAudioRepository;
+}
+
 // TODO: Commit 9 adds supabaseWorkRepository.
 // TODO: Commit 10 adds supabaseGuestRepository.
 
 export const projectRepository: ProjectRepository = resolveProjectRepository();
-
-export const audioRepository: AudioRepository =
-  localAudioRepository;
-
-export const workRepository: WorkRepository =
-  localWorkRepository;
-
-export const guestRepository: GuestRepository =
-  localGuestRepository;
+export const audioRepository: AudioRepository = resolveAudioRepository();
+export const workRepository: WorkRepository = localWorkRepository;
+export const guestRepository: GuestRepository = localGuestRepository;

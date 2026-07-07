@@ -1,14 +1,18 @@
 import type { VoiceSubmission } from "@/types/project";
 import { generateId } from "@/utils/id";
 import { saveAudio } from "@/services/storage/audioStorage";
+import { audioRepository } from "@/services/repositories";
+import { isCloudRepositoryMode } from "@/services/repositories/repositoryMode";
+import { getAudioExtension } from "@/services/supabase/storageUrls";
 
 /**
  * Factory function: creates a VoiceSubmission from raw recording data.
  *
- * Saves the audio Blob to IndexedDB for persistent storage.
- * Returns a VoiceSubmission with audioId (NOT a blob URL).
+ * Local mode: saves blob to IndexedDB, audioId = IndexedDB key.
+ * Cloud mode: uploads blob to Supabase Storage, audioId = Storage path.
  *
- * Pure function with one async side effect: IndexedDB write.
+ * The caller (useSubmitRecording) passes projectId so we can build
+ * the Storage path: projects/{projectId}/submissions/{submissionId}.{ext}
  */
 export async function createVoiceSubmission(input: {
   slotId: string;
@@ -18,11 +22,26 @@ export async function createVoiceSubmission(input: {
   province: string;
   audioBlob: Blob;
   duration: number;
+  /** Required for cloud Storage path construction. */
+  projectId: string;
 }): Promise<VoiceSubmission> {
-  const audioId = await saveAudio(input.audioBlob);
+  const submissionId = generateId("sub-");
+  const isCloud = isCloudRepositoryMode();
+
+  let audioId: string;
+
+  if (isCloud) {
+    // Cloud mode: upload to Supabase Storage
+    const ext = getAudioExtension(input.audioBlob.type);
+    const path = `projects/${input.projectId}/submissions/${submissionId}.${ext}`;
+    audioId = await audioRepository.saveAudio(input.audioBlob, path);
+  } else {
+    // Local mode: save to IndexedDB
+    audioId = await saveAudio(input.audioBlob);
+  }
 
   return {
-    id: generateId("sub-"),
+    id: submissionId,
     slotId: input.slotId,
     lineIndex: input.lineIndex,
     guestId: input.guestId || undefined,

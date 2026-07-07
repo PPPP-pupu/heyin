@@ -9,27 +9,32 @@
 - Document Supabase upload results
 - Baselining before migration
 
-## CN-2 — Provider Mode Refactor
+## CN-2 — Provider Mode Refactor ✅
 
-**Scope:** Code changes — environment + resolver structure only.
-
-- Files:
-  - `src/services/repositories/cloudProvider.ts` — read `NEXT_PUBLIC_HEYIN_CLOUD_PROVIDER`
-  - `src/services/repositories/index.ts` — prepare Tencent fallback paths
-  - `.env.example` — add provider variable
-- Keep current Supabase behavior unchanged
-- Tencent repositories not implemented yet
-
-## CN-3 — Tencent Client Placeholder
-
-**Scope:** Configuration + SDK research only.
+**Scope:** Code changes — environment + resolver structure only. **DONE.**
 
 - Files:
-  - `src/services/tencent/client.ts` — placeholder
-  - `src/services/tencent/types.ts` — placeholder
-  - `docs/tencent-sdk-notes.md` — SDK choice documentation
-- No real SDK dependency yet
-- May install `@cloudbase/js-sdk` if confirmed
+  - `src/services/repositories/cloudProvider.ts` — `getCloudProvider()`
+  - `src/services/repositories/index.ts` — 4 resolve functions, tencent→throw
+  - `src/services/repositories/tencent/notImplemented.ts` — clear error
+  - `src/services/repositories/tencent/README.md` — planned files
+  - `.env.example` — provider comments
+- Cloud + supabase still works. Cloud + tencent throws.
+
+## CN-3 — Tencent Backend Setup / Data Model Finalization ✅
+
+**Scope:** Documentation + design only. **DONE.**
+
+- Docs created:
+  - `docs/tencent-cloudbase-setup.md` — step-by-step CloudBase setup
+  - `docs/tencent-collections-schema.md` — 6 collections with fields/indexes
+  - `docs/tencent-security-rules.md` — MVP rules + production tightening
+  - `docs/tencent-storage-design.md` — path conventions + upload/delete flow
+  - `docs/cn3-decision-record.md` — 10 decisions + summary
+- Code:
+  - `src/services/repositories/tencent/tencentTypes.ts` — TypeScript interfaces (no runtime)
+  - `.env.example` — Tencent env var placeholders
+- No Tencent SDK added. No runtime behavior changed.
 
 ## CN-4 — Tencent Project Repository
 

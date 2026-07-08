@@ -66,8 +66,8 @@ export default function VoiceBubble(props: VoiceBubbleProps) {
     // ── Claimed: locked — shows who is recording ───────────
     case "claimed": {
       const isSelf = currentGuestId != null && slot.claimedBy === currentGuestId;
-      const label = isSelf ? "Reserved for you" : "Someone is recording...";
-      const subLabel = isSelf ? "Finish recording or close to release" : "Try another slot";
+      const label = isSelf ? "已为你保留" : "有人正在录制...";
+      const subLabel = isSelf ? "完成录音或关闭即可释放" : "试试其他空位";
       return (
         <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3 cursor-default">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-100 text-sm text-amber-600">
@@ -106,7 +106,7 @@ function renderEmpty(isSelected?: boolean, onSelect?: () => void) {
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
       </div>
       <span className={`text-sm ${isSelected ? "text-indigo-600 font-medium" : "text-gray-400"}`}>
-        {isSelected ? "Selected — tap to record" : "Tap to record this line"}
+        {isSelected ? "已选择，点击录制" : "点击录制这一句"}
       </span>
     </div>
   );

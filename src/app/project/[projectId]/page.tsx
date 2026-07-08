@@ -117,7 +117,7 @@ export default function ProjectDetailPage() {
       await projectRepository.deleteProject(project.id);
       router.push("/explore");
     } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : "Failed to delete project.");
+      setDeleteError(err instanceof Error ? err.message : "删除项目失败，请重试。");
       setIsDeleting(false);
       setDeleteConfirm(false);
     }
@@ -127,9 +127,9 @@ export default function ProjectDetailPage() {
   if (isLoading) {
     return (
       <AppShell>
-        <AppHeader title="Chorus Project Detail" showBack />
+        <AppHeader title="合唱项目详情" showBack />
         <div className="flex items-center justify-center py-20">
-          <p className="text-sm text-gray-400">Loading project...</p>
+          <p className="text-sm text-gray-400">正在加载项目...</p>
         </div>
       </AppShell>
     );
@@ -139,10 +139,10 @@ export default function ProjectDetailPage() {
   if (error) {
     return (
       <AppShell>
-        <AppHeader title="Chorus Project Detail" showBack />
+        <AppHeader title="合唱项目详情" showBack />
         <div className="flex flex-col items-center justify-center gap-4 px-6 py-20">
           <p className="text-sm text-red-500">{error}</p>
-          <SecondaryButton href="/create">Create a New Project</SecondaryButton>
+          <SecondaryButton href="/create">创建新项目</SecondaryButton>
         </div>
       </AppShell>
     );
@@ -152,13 +152,13 @@ export default function ProjectDetailPage() {
   if (!project) {
     return (
       <AppShell>
-        <AppHeader title="Project Not Found" showBack />
+        <AppHeader title="未找到项目" showBack />
         <div className="flex flex-col items-center justify-center gap-4 px-6 py-20">
           <p className="text-sm text-gray-400">
-            This project does not exist or may have been deleted.
+            项目不存在或已被删除。
           </p>
           <SecondaryButton href="/create">
-            Create a New Project
+            创建新项目
           </SecondaryButton>
         </div>
       </AppShell>
@@ -167,7 +167,7 @@ export default function ProjectDetailPage() {
 
   return (
     <AppShell>
-      <AppHeader title="Chorus Project Detail" showBack />
+      <AppHeader title="合唱项目详情" showBack />
 
       <div className="px-4 py-6">
         <div className="mb-1">
@@ -184,7 +184,7 @@ export default function ProjectDetailPage() {
             {project.status}
           </span>
           <span className="text-xs text-gray-400">
-            {filledSlots} / {totalSlots} voices completed
+            已完成 {filledSlots} / {totalSlots} 个声音
           </span>
         </div>
 
@@ -198,7 +198,7 @@ export default function ProjectDetailPage() {
         {/* Viewer mode notice */}
         {!isCheckingOwner && !isOwner && (
           <div className="mt-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-500">
-            Viewer mode. Management actions are hidden.
+            浏览模式。管理操作已隐藏。
           </div>
         )}
 
@@ -208,31 +208,31 @@ export default function ProjectDetailPage() {
             {project.status !== "open" && (
               <button type="button" onClick={() => handleStatusChange("open")}
                 className="rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors">
-                Open for Recording
+                开放录音
               </button>
             )}
             {project.status === "open" && (
               <button type="button" onClick={() => handleStatusChange("locked")}
                 className="rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100 transition-colors">
-                Lock Submissions
+                锁定提交
               </button>
             )}
             {(project.status === "open" || project.status === "locked") && (
               <button type="button" onClick={() => handleStatusChange("completed")}
                 className="rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors">
-                Mark Completed
+                标记完成
               </button>
             )}
             {project.status === "completed" && (
               <button type="button" onClick={() => handleStatusChange("open")}
                 className="rounded-lg bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors">
-                Re-open
+                重新开放
               </button>
             )}
             {project.status === "locked" && (
               <button type="button" onClick={() => handleStatusChange("open")}
                 className="rounded-lg bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors">
-                Re-open
+                重新开放
               </button>
             )}
           </div>
@@ -244,7 +244,7 @@ export default function ProjectDetailPage() {
             <button type="button" onClick={playback.play} disabled={filledSlots === 0}
               className="flex items-center gap-2 rounded-xl bg-indigo-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-600 active:bg-indigo-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5 3.5v9l7-4.5-7-4.5z" /></svg>
-              Play Chorus
+              播放合唱
             </button>
           ) : (
             <>
@@ -290,7 +290,7 @@ export default function ProjectDetailPage() {
         {/* Cloud notice — participants can submit via Join page */}
         {isCloud && (
           <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-            Cloud submissions are enabled. Share the link for others to join and record.
+            云端提交已开启，分享链接邀请别人加入录音吧。
           </div>
         )}
 
@@ -308,15 +308,15 @@ export default function ProjectDetailPage() {
               onClick={handleDelete}
               className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 transition-colors"
             >
-              Delete Project
+              删除项目
             </button>
           ) : (
             <div className="rounded-xl border-2 border-red-300 bg-red-50 p-3">
               <p className="text-sm font-semibold text-red-700">
-                Delete this project and all recordings?
+                确定删除这个项目和所有录音吗？
               </p>
               <p className="mt-1 text-xs text-red-500">
-                This will permanently delete the project, all voice submissions, and all audio files. This cannot be undone.
+                删除后无法恢复，请谨慎操作。
               </p>
               <div className="mt-2 flex gap-2">
                 <button
@@ -325,7 +325,7 @@ export default function ProjectDetailPage() {
                   disabled={isDeleting}
                   className="rounded-lg bg-red-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
                 >
-                  {isDeleting ? "Deleting..." : "Yes, Delete Forever"}
+                  {isDeleting ? "删除中..." : "确认删除"}
                 </button>
                 <button
                   type="button"

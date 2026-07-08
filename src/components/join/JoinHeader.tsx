@@ -29,7 +29,7 @@ export default function JoinHeader({
       </div>
 
       <p className="mt-2 text-xs text-gray-400">
-        {filledSlots} / {totalSlots} voices
+        {filledSlots} / {totalSlots} 个声音
       </p>
     </div>
   );

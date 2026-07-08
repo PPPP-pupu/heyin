@@ -66,9 +66,9 @@ export default function ProfilePage() {
   if (!isLoaded) {
     return (
       <AppShell>
-        <AppHeader title="Profile" showBack />
+        <AppHeader title="个人资料" showBack />
         <div className="flex items-center justify-center py-20">
-          <p className="text-sm text-gray-400">Loading...</p>
+          <p className="text-sm text-gray-400">加载中...</p>
         </div>
       </AppShell>
     );
@@ -76,34 +76,34 @@ export default function ProfilePage() {
 
   return (
     <AppShell>
-      <AppHeader title="Profile" showBack />
+      <AppHeader title="个人资料" showBack />
 
       <div className="flex flex-col gap-6 px-4 py-6">
         {/* Guest Identity */}
         <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-700">Guest Identity</h3>
+          <h3 className="text-sm font-semibold text-gray-700">访客身份</h3>
           <p className="mt-1 text-xs text-gray-400">
-            Your local identity is stored in this browser only.
+            你的访客身份只保存在当前浏览器中。
           </p>
 
           <div className="mt-4 flex flex-col gap-3">
             <div>
-              <label className="text-xs font-medium text-gray-600">Nickname</label>
+              <label className="text-xs font-medium text-gray-600">昵称</label>
               <input
                 type="text"
                 className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                placeholder="e.g. 小雨"
+                placeholder="例如：小雨"
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
                 maxLength={20}
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-gray-600">Province (optional)</label>
+              <label className="text-xs font-medium text-gray-600">所在地区（可选）</label>
               <input
                 type="text"
                 className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                placeholder="e.g. 浙江"
+                placeholder="例如：浙江"
                 value={province}
                 onChange={(e) => setProvince(e.target.value)}
                 maxLength={30}
@@ -120,15 +120,15 @@ export default function ProfilePage() {
                 : "bg-indigo-500 text-white hover:bg-indigo-600"
             }`}
           >
-            {saved ? "Saved!" : "Save Profile"}
+            {saved ? "已保存！" : "保存资料"}
           </button>
         </section>
 
         {/* Danger zone */}
         <section className="rounded-2xl border border-red-100 bg-white p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-red-600">Danger Zone</h3>
+          <h3 className="text-sm font-semibold text-red-600">危险操作</h3>
           <p className="mt-1 text-xs text-gray-400">
-            These actions cannot be undone.
+            以下操作无法撤销。
           </p>
 
           <div className="mt-4 flex flex-col gap-2">
@@ -140,7 +140,7 @@ export default function ProfilePage() {
               }}
               className="rounded-xl border border-red-200 px-5 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors"
             >
-              Reset Guest Identity
+              重置访客身份
             </button>
 
             {!confirmReset ? (
@@ -149,15 +149,15 @@ export default function ProfilePage() {
                 onClick={handleClearAllData}
                 className="rounded-xl border border-red-200 px-5 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors"
               >
-                Clear All Local Data
+                清除所有本地数据
               </button>
             ) : (
               <div className="rounded-xl border-2 border-red-300 bg-red-50 p-4">
                 <p className="text-sm font-semibold text-red-700">
-                  Delete ALL projects, recordings, and works?
+                  确定删除所有项目、录音和作品吗？
                 </p>
                 <p className="mt-1 text-xs text-red-500">
-                  This will remove every project, every recording, and every generated work from this browser.
+                  这会删除当前浏览器中的所有项目、录音和生成的作品。
                 </p>
                 <div className="mt-3 flex gap-2">
                   <button
@@ -165,14 +165,14 @@ export default function ProfilePage() {
                     onClick={handleClearAllData}
                     className="flex-1 rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600 transition-colors"
                   >
-                    Yes, Delete Everything
+                    确认全部删除
                   </button>
                   <button
                     type="button"
                     onClick={() => setConfirmReset(false)}
                     className="flex-1 rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
                   >
-                    Cancel
+                    取消
                   </button>
                 </div>
               </div>

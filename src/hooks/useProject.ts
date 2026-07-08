@@ -53,7 +53,7 @@ export function useProject(projectId: string) {
         return null;
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load project.");
+      setError(err instanceof Error ? err.message : "加载项目失败。");
       return null;
     } finally {
       if (!options?.silent) {
@@ -85,7 +85,7 @@ export function useProject(projectId: string) {
         }
       })
       .catch((err) => {
-        setError(err instanceof Error ? err.message : "Failed to load project.");
+        setError(err instanceof Error ? err.message : "加载项目失败。");
       })
       .finally(() => {
         setIsLoading(false);

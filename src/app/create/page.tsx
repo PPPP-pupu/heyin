@@ -72,7 +72,7 @@ export default function CreatePage() {
       console.error("[CreatePage] saveProject failed:", err);
       const msg = err instanceof Error
         ? err.message
-        : "Could not create project. Please check your connection and try again.";
+        : "创建项目失败，请检查网络后重试。";
       setSaveError(msg);
       setIsSubmitting(false);
     }
@@ -85,7 +85,7 @@ export default function CreatePage() {
 
   return (
     <AppShell>
-      <AppHeader title="Create Chorus Project" showBack />
+      <AppHeader title="创建合唱项目" showBack />
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5 px-4 py-6">
         {saveError && (
@@ -95,24 +95,24 @@ export default function CreatePage() {
         )}
 
         <div>
-          <label htmlFor="title" className={labelClasses}>Project Title</label>
+          <label htmlFor="title" className={labelClasses}>项目标题</label>
           <input id="title" type="text" className={inputClasses}
-            placeholder='e.g. "Our 十年 Chorus"'
+            placeholder='例如："我们的十年合唱"'
             value={formData.title} onChange={(e) => handleChange("title", e.target.value)} maxLength={100} />
           {errors.title && <p className={errorClasses}>{errors.title}</p>}
         </div>
 
         <div>
-          <label htmlFor="songName" className={labelClasses}>Song Name</label>
+          <label htmlFor="songName" className={labelClasses}>歌曲名称</label>
           <input id="songName" type="text" className={inputClasses}
-            placeholder="e.g. 十年"
+            placeholder="例如：十年"
             value={formData.songName} onChange={(e) => handleChange("songName", e.target.value)} maxLength={100} />
           {errors.songName && <p className={errorClasses}>{errors.songName}</p>}
         </div>
 
         <div>
-          <label htmlFor="lyrics" className={labelClasses}>Lyrics</label>
-          <p className="text-xs text-gray-400 mb-1">One lyric phrase per line. Empty lines will be ignored.</p>
+          <label htmlFor="lyrics" className={labelClasses}>歌词</label>
+          <p className="text-xs text-gray-400 mb-1">每行输入一句歌词，空行会自动忽略。</p>
           <textarea id="lyrics" className={`${inputClasses} min-h-[180px] resize-y`}
             placeholder={"如果那两个字没有颤抖\n我不会发现我难受\n怎么说出口也不过是分手\n如果对于明天没有要求"}
             value={formData.lyrics} onChange={(e) => handleChange("lyrics", e.target.value)} rows={8} />
@@ -120,8 +120,8 @@ export default function CreatePage() {
         </div>
 
         <div>
-          <label htmlFor="slotsPerLine" className={labelClasses}>Voices per Line</label>
-          <p className="text-xs text-gray-400 mb-1">How many people can sing each lyric line. (1–10)</p>
+          <label htmlFor="slotsPerLine" className={labelClasses}>每句可录人数</label>
+          <p className="text-xs text-gray-400 mb-1">每句歌词最多可由几个人录制（1–10）。</p>
           <input id="slotsPerLine" type="number" className={`${inputClasses} max-w-24`}
             min={1} max={10}
             value={formData.slotsPerLine} onChange={(e) => handleChange("slotsPerLine", Number(e.target.value))} />
@@ -130,7 +130,7 @@ export default function CreatePage() {
 
         <div className="mt-2">
           <PrimaryButton type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Creating..." : "Create Project"}
+            {isSubmitting ? "创建中..." : "创建项目"}
           </PrimaryButton>
         </div>
       </form>

@@ -17,15 +17,15 @@ export default function HomePage() {
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">Heyin</h1>
         <p className="mt-1 text-xl font-medium text-indigo-500">和音</p>
         <p className="mt-3 text-sm leading-relaxed text-gray-500">
-          Sing together. Keep every voice.
+          一起唱，留下每一个声音。
         </p>
       </section>
 
       {/* Actions */}
       <section className="flex flex-col gap-3 px-6 pb-12">
         <TemporaryAccessWarning />
-        <PrimaryButton href="/create">Create Chorus Project</PrimaryButton>
-        <SecondaryButton href="/explore">Explore Projects</SecondaryButton>
+        <PrimaryButton href="/create">创建合唱项目</PrimaryButton>
+        <SecondaryButton href="/explore">浏览项目</SecondaryButton>
       </section>
     </AppShell>
   );

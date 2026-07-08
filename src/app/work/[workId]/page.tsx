@@ -111,10 +111,10 @@ export default function WorkPage() {
   if (notFound) {
     return (
       <AppShell>
-        <AppHeader title="Work Not Found" showBack />
+        <AppHeader title="未找到作品" showBack />
         <div className="flex flex-col items-center justify-center gap-4 px-6 py-20">
-          <p className="text-sm text-gray-400">This work does not exist.</p>
-          <SecondaryButton href="/explore">Browse Projects</SecondaryButton>
+          <p className="text-sm text-gray-400">这个作品不存在或已被删除。</p>
+          <SecondaryButton href="/explore">浏览项目</SecondaryButton>
         </div>
       </AppShell>
     );
@@ -125,7 +125,7 @@ export default function WorkPage() {
       <AppShell>
         <AppHeader showBack />
         <div className="flex items-center justify-center py-20">
-          <p className="text-sm text-gray-400">Loading...</p>
+          <p className="text-sm text-gray-400">加载中...</p>
         </div>
       </AppShell>
     );
@@ -175,7 +175,7 @@ export default function WorkPage() {
 
         {/* View project link */}
         <Link href={`/project/${work.projectId}`}>
-          <SecondaryButton>View Project</SecondaryButton>
+          <SecondaryButton>查看项目</SecondaryButton>
         </Link>
       </div>
     </AppShell>

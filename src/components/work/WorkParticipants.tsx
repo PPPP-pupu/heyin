@@ -8,7 +8,7 @@ export default function WorkParticipants({ participants }: WorkParticipantsProps
   return (
     <div>
       <h3 className="text-sm font-semibold text-gray-700">
-        Participants · {participants.length}
+        参与者 · {participants.length}
       </h3>
       <div className="mt-2 flex flex-wrap gap-2">
         {participants.map((name) => (

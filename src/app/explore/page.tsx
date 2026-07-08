@@ -22,20 +22,20 @@ export default function ExplorePage() {
 
   return (
     <AppShell>
-      <AppHeader title="Explore Chorus Projects" showBack />
+      <AppHeader title="浏览合唱项目" showBack />
 
       <div className="px-4 py-6">
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <p className="text-sm text-gray-400">Loading...</p>
+            <p className="text-sm text-gray-400">加载中...</p>
           </div>
         ) : projects.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-4 py-20">
             <p className="text-sm text-gray-400">
-              No projects yet. Create your first chorus!
+              还没有项目，创建你的第一个合唱吧！
             </p>
             <div className="w-48">
-              <PrimaryButton href="/create">Create Project</PrimaryButton>
+              <PrimaryButton href="/create">创建项目</PrimaryButton>
             </div>
           </div>
         ) : (
@@ -67,7 +67,7 @@ export default function ExplorePage() {
                         {pct}%
                       </span>
                       <p className="text-xs text-gray-400">
-                        {filled}/{total} voices
+                        {filled}/{total} 个声音
                       </p>
                     </div>
                   </div>

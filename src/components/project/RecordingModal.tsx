@@ -68,7 +68,7 @@ export default function RecordingModal({
     try {
       await onSubmit({ nickname: nickname.trim(), province: province.trim() });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Upload failed. Your recording is still here. Please try again.";
+      const msg = err instanceof Error ? err.message : "上传失败，你的录音还在，请再试一次。";
       const short = msg.length > 120 ? msg.slice(0, 120) + "..." : msg;
       setSubmitError(short);
     } finally {
@@ -94,10 +94,10 @@ export default function RecordingModal({
           {/* Lyric text */}
           <div className="mb-4 text-center">
             <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-              Record this line
+              录制这一句
             </p>
             <p className="mt-0.5 text-xs text-gray-400">
-              You can preview before submitting
+              提交前可以先试听
             </p>
             <p className="mt-1.5 text-base font-semibold text-gray-900 leading-relaxed">
               {slot.lyricText}
@@ -121,7 +121,7 @@ export default function RecordingModal({
                   <line x1="12" x2="12" y1="19" y2="22" />
                 </svg>
               </div>
-              <p className="text-sm font-medium text-gray-500">Tap Start Recording when ready</p>
+              <p className="text-sm font-medium text-gray-500">准备好后点击开始录音</p>
             </div>
           )}
 
@@ -133,12 +133,12 @@ export default function RecordingModal({
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
                   <span className="relative inline-flex h-4 w-4 rounded-full bg-red-500" />
                 </span>
-                <span className="text-sm font-semibold text-red-600">Recording</span>
+                <span className="text-sm font-semibold text-red-600">录音中</span>
               </div>
               <p className="text-4xl font-mono font-bold text-gray-900 tabular-nums">
                 {formatTime(elapsedMs)}
               </p>
-              <p className="text-xs text-red-400">Tap Stop when you finish</p>
+              <p className="text-xs text-red-400">唱完后点击停止</p>
             </div>
           )}
 
@@ -153,23 +153,23 @@ export default function RecordingModal({
 
               {audioBlobUrl && (
                 <div className="rounded-2xl bg-gray-50 p-3">
-                  <p className="mb-1.5 text-xs font-medium text-gray-500">Preview your recording</p>
+                  <p className="mb-1.5 text-xs font-medium text-gray-500">试听你的录音</p>
                   <audio controls src={audioBlobUrl} className="w-full" style={{ height: 36 }} />
                 </div>
               )}
 
               <div>
-                <label htmlFor="nickname" className="text-sm font-medium text-gray-700">Your Nickname</label>
+                <label htmlFor="nickname" className="text-sm font-medium text-gray-700">你的昵称</label>
                 <input id="nickname" type="text"
                   className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                  placeholder="e.g. 小雨" value={nickname} onChange={(e) => setNickname(e.target.value)} maxLength={30} />
+                  placeholder="例如：小雨" value={nickname} onChange={(e) => setNickname(e.target.value)} maxLength={30} />
               </div>
 
               <div>
-                <label htmlFor="province" className="text-sm font-medium text-gray-700">Province (optional)</label>
+                <label htmlFor="province" className="text-sm font-medium text-gray-700">所在地区（可选）</label>
                 <input id="province" type="text"
                   className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                  placeholder="e.g. 浙江" value={province} onChange={(e) => setProvince(e.target.value)} maxLength={30} />
+                  placeholder="例如：浙江" value={province} onChange={(e) => setProvince(e.target.value)} maxLength={30} />
               </div>
             </div>
           )}
@@ -185,7 +185,7 @@ export default function RecordingModal({
               </button>
               <button type="button" onClick={() => recorder.startRecording()}
                 className="flex-1 rounded-xl bg-indigo-500 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-600 active:bg-indigo-700 transition-colors">
-                Start Recording
+                开始录音
               </button>
             </div>
           )}
@@ -193,7 +193,7 @@ export default function RecordingModal({
           {state === "recording" && (
             <button type="button" onClick={() => recorder.stopRecording()}
               className="w-full rounded-xl bg-red-500 px-4 py-3.5 text-base font-semibold text-white shadow-sm hover:bg-red-600 active:bg-red-700 transition-colors">
-              Stop Recording
+              停止录音
             </button>
           )}
 

@@ -28,7 +28,7 @@ export default function ShareButton({ projectId, title }: ShareButtonProps) {
 
   async function handleShare() {
     const url = generateJoinUrl(projectId);
-    const shareTitle = title ?? "Join my chorus on Heyin!";
+    const shareTitle = title ?? "来和我在和音一起合唱吧！";
 
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
@@ -71,7 +71,7 @@ export default function ShareButton({ projectId, title }: ShareButtonProps) {
             <path d="M4.5 1A1.5 1.5 0 0 0 3 2.5v8A1.5 1.5 0 0 0 4.5 12H6v1.5A1.5 1.5 0 0 0 7.5 15h4a1.5 1.5 0 0 0 1.5-1.5v-8A1.5 1.5 0 0 0 11.5 4H10V2.5A1.5 1.5 0 0 0 8.5 1h-4zM6 4h5.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1-.5-.5V11h1.5A1.5 1.5 0 0 0 10 9.5V6H8.5A1.5 1.5 0 0 0 7 4.5V4z" />
           )}
         </svg>
-        {copied ? "Link Copied!" : "Share"}
+        {copied ? "链接已复制！" : "Share"}
       </button>
 
       {showUrl && (

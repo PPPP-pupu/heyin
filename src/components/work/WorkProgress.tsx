@@ -13,7 +13,7 @@ export default function WorkProgress({
 
   return (
     <div className="rounded-xl border border-gray-100 bg-white p-4">
-      <h3 className="text-sm font-semibold text-gray-700">Completion</h3>
+      <h3 className="text-sm font-semibold text-gray-700">完成度</h3>
 
       {/* Progress bar */}
       <div className="mt-3">

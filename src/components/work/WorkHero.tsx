@@ -34,22 +34,22 @@ export default function WorkHero({
       <div className="mt-6 flex justify-center gap-8">
         <div className="text-center">
           <p className="text-2xl font-bold">{participantCount}</p>
-          <p className="text-xs text-indigo-200">Voices</p>
+          <p className="text-xs text-indigo-200">声音</p>
         </div>
         <div className="text-center">
           <p className="text-2xl font-bold">{duration.toFixed(0)}s</p>
-          <p className="text-xs text-indigo-200">Duration</p>
+          <p className="text-xs text-indigo-200">时长</p>
         </div>
         {versionCount > 1 && (
           <div className="text-center">
             <p className="text-2xl font-bold">v{versionCount}</p>
-            <p className="text-xs text-indigo-200">Versions</p>
+            <p className="text-xs text-indigo-200">版本</p>
           </div>
         )}
       </div>
 
       <p className="mt-4 text-center text-xs text-indigo-300">
-        Created {new Date(createdAt).toLocaleDateString()}
+        创建于 {new Date(createdAt).toLocaleDateString()}
       </p>
     </div>
   );

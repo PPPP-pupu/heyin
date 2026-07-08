@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Heyin - 和音",
-  description: "Sing together. Keep every voice.",
+  description: "一起唱，留下每一个声音。",
 };
 
 export default function RootLayout({

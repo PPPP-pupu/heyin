@@ -13,6 +13,8 @@ interface SlotPickerProps {
   selectedSlotId: string | null;
   onSlotSelect?: (slot: VoiceSlot) => void | Promise<void>;
   onSlotPlay: (slot: VoiceSlot) => void;
+  /** Called when user wants to re-record their own filled slot. */
+  onSlotReRecord?: (slot: VoiceSlot) => void;
   /** Passed through to VoiceBubble for "You are recording..." on claimed slots. */
   currentGuestId?: string;
 }
@@ -33,12 +35,13 @@ export default function SlotPicker({
   selectedSlotId,
   onSlotSelect,
   onSlotPlay,
+  onSlotReRecord,
   currentGuestId,
 }: SlotPickerProps) {
   return (
     <div className="px-4">
       <p className="mt-4 mb-3 text-sm font-medium text-gray-600">
-        Choose an open slot to record your voice:
+        选择一个空位，录下你的声音：
       </p>
 
       <div className="flex flex-col gap-4 pb-10">
@@ -51,6 +54,7 @@ export default function SlotPicker({
             selectedSlotId={selectedSlotId}
             onSlotSelect={onSlotSelect}
             onSlotPlay={onSlotPlay}
+            onSlotReRecord={onSlotReRecord}
             currentGuestId={currentGuestId}
           />
         ))}

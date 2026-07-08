@@ -28,6 +28,7 @@ export function useSubmitRecording(
       audioBlob: Blob;
       durationSec: number;
       projectId: string;
+      visibility?: "public" | "creatorOnly";
     }) => {
       if (!project) return;
 
@@ -40,6 +41,7 @@ export function useSubmitRecording(
         audioBlob: input.audioBlob,
         duration: input.durationSec,
         projectId: input.projectId,
+        visibility: input.visibility,
       });
 
       const updated = await projectRepository.submitRecording(

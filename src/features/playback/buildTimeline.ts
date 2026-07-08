@@ -67,7 +67,7 @@ export function buildTimeline(project: ChorusProject): PlaybackTimeline {
         slotId: s.id,
         source,
         duration: s.submission!.duration,
-        volume: 1,
+        volume: s.submission!.mixVolume ?? 1,
       };
     });
 

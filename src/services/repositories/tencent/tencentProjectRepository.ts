@@ -276,6 +276,8 @@ export const tencentProjectRepository: ProjectRepository = {
       province: submission.province ?? null,
       audioPath: submission.audioId,
       duration: submission.duration,
+      visibility: submission.visibility ?? "creatorOnly",
+      mixVolume: submission.mixVolume ?? 1,
       createdAt: submission.createdAt,
     });
 

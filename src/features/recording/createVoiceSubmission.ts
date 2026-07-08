@@ -26,6 +26,7 @@ export async function createVoiceSubmission(input: {
   duration: number;
   /** Required for cloud Storage path construction. */
   projectId: string;
+  visibility?: "public" | "creatorOnly";
 }): Promise<VoiceSubmission> {
   const isCloud = isCloudRepositoryMode();
 
@@ -54,6 +55,7 @@ export async function createVoiceSubmission(input: {
     province: input.province || undefined,
     audioId,
     duration: input.duration,
+    visibility: input.visibility ?? "creatorOnly",
     createdAt: new Date().toISOString(),
   };
 }

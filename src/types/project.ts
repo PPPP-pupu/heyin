@@ -18,6 +18,10 @@ export interface VoiceSubmission {
   duration: number;
   lineIndex?: number;
   createdAt: string;
+  /** Who can play this individual recording. "creatorOnly" = owner + self only. */
+  visibility?: "public" | "creatorOnly";
+  /** Per-submission mix gain for chorus export. 0=mute, 1=normal, 1.5=+50%. */
+  mixVolume?: number;
 }
 
 export interface VoiceSlot {

@@ -21,7 +21,7 @@ interface RecordingModalProps {
   slot: VoiceSlot;
   recorder: UseRecorderReturn;
   onClose: () => void;
-  onSubmit: (data: { nickname: string; province: string }) => void | Promise<void>;
+  onSubmit: (data: { nickname: string; province: string; visibility: "public" | "creatorOnly" }) => void | Promise<void>;
   defaultNickname?: string;
   defaultProvince?: string;
 }
@@ -38,6 +38,7 @@ export default function RecordingModal({
   const [province, setProvince] = useState(defaultProvince ?? "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [allowPublicPlayback, setAllowPublicPlayback] = useState(false);
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => { setNickname(defaultNickname ?? ""); }, [defaultNickname]);
@@ -66,7 +67,11 @@ export default function RecordingModal({
     setSubmitError(null);
     setIsSubmitting(true);
     try {
-      await onSubmit({ nickname: nickname.trim(), province: province.trim() });
+      await onSubmit({
+        nickname: nickname.trim(),
+        province: province.trim(),
+        visibility: allowPublicPlayback ? "public" : "creatorOnly",
+      });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "上传失败，你的录音还在，请再试一次。";
       const short = msg.length > 120 ? msg.slice(0, 120) + "..." : msg;
@@ -170,6 +175,25 @@ export default function RecordingModal({
                 <input id="province" type="text"
                   className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
                   placeholder="例如：浙江" value={province} onChange={(e) => setProvince(e.target.value)} maxLength={30} />
+              </div>
+
+              {/* Privacy toggle */}
+              <div className="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
+                <input
+                  id="allowPublic"
+                  type="checkbox"
+                  checked={allowPublicPlayback}
+                  onChange={(e) => setAllowPublicPlayback(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-gray-300 text-indigo-500 focus:ring-indigo-400"
+                />
+                <div>
+                  <label htmlFor="allowPublic" className="text-sm font-medium text-gray-700">
+                    允许其他人试听我的单条录音
+                  </label>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    关闭后，别人只能在最终合唱里听到你，不能单独播放你的录音。
+                  </p>
+                </div>
               </div>
             </div>
           )}

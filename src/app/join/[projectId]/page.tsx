@@ -110,9 +110,19 @@ export default function JoinPage() {
     [updateNickname]
   );
 
-  /** Claim a slot via repository (works for both local and cloud). */
+  /** Claim or re-record a slot. Own filled slots can be re-recorded. */
   async function handleClaimSlot(slot: VoiceSlot) {
     if (!project || !profile) return;
+
+    // Allow re-recording own filled slot
+    if (slot.status === "filled" && slot.submission?.guestId === profile.id) {
+      setClaimError(null);
+      setSubmitError(null);
+      setSelectedSlot(slot);
+      setClaimedSlotId(slot.id);
+      return;
+    }
+
     if (slot.status !== "empty") return;
 
     setClaimError(null);
@@ -177,7 +187,7 @@ export default function JoinPage() {
     clearSelection();
   }
 
-  async function handleRecordingSubmit(data: { nickname: string; province: string }) {
+  async function handleRecordingSubmit(data: { nickname: string; province: string; visibility: "public" | "creatorOnly" }) {
     if (!selectedSlot || !recorder.audioBlob || !project) return;
     setSubmitError(null);
     try {
@@ -190,6 +200,7 @@ export default function JoinPage() {
         audioBlob: recorder.audioBlob,
         durationSec: recorder.elapsedMs / 1000,
         projectId: project.id,
+        visibility: data.visibility,
       });
       setClaimedSlotId(null);
       clearSelection();
@@ -204,6 +215,17 @@ export default function JoinPage() {
 
   function handleSlotPlay(slot: VoiceSlot) {
     if (slot.submission?.audioId) playAudioId(slot.submission.audioId);
+  }
+
+  function handleSlotReRecord(slot: VoiceSlot) {
+    if (!profile || !project) return;
+    // Open RecordingModal for own filled slot to replace
+    if (slot.status === "filled" && slot.submission?.guestId === profile.id) {
+      setSelectedSlot(slot);
+      setClaimedSlotId(slot.id);
+      setClaimError(null);
+      setSubmitError(null);
+    }
   }
 
   const slotsByLine = project
@@ -361,6 +383,7 @@ export default function JoinPage() {
         selectedSlotId={selectedSlot?.id ?? null}
         onSlotSelect={handleClaimSlot}
         onSlotPlay={handleSlotPlay}
+        onSlotReRecord={handleSlotReRecord}
         currentGuestId={profile?.id}
       />
 

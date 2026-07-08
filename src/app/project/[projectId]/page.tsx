@@ -89,7 +89,7 @@ export default function ProjectDetailPage() {
     }
   }
 
-  async function handleRecordingSubmit(data: { nickname: string; province: string }) {
+  async function handleRecordingSubmit(data: { nickname: string; province: string; visibility: "public" | "creatorOnly" }) {
     if (!selectedSlot || !recorder.audioBlob || !project) return;
     await submitRecording_.submit({
       slotId: selectedSlot.id,
@@ -99,6 +99,7 @@ export default function ProjectDetailPage() {
       audioBlob: recorder.audioBlob,
       durationSec: recorder.elapsedMs / 1000,
       projectId: project.id,
+      visibility: data.visibility,
     });
     clearSelection();
     recorder.resetRecording();
@@ -362,6 +363,16 @@ export default function ProjectDetailPage() {
                   ? line.index === playback.currentLineIndex
                   : false
               }
+              isOwner={isOwner}
+              onVolumeChange={async (slotId, volume) => {
+                if (!project) return;
+                const updated = { ...project, voiceSlots: project.voiceSlots.map(s =>
+                  s.id === slotId && s.submission
+                    ? { ...s, submission: { ...s.submission, mixVolume: volume } }
+                    : s
+                )};
+                setProject(updated);
+              }}
             />
           ))}
         </div>

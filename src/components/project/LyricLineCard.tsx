@@ -13,6 +13,12 @@ interface LyricLineCardProps {
   isPaused?: boolean;
   /** Passed through to VoiceBubble for "You are recording..." on claimed slots. */
   currentGuestId?: string;
+  /** True if viewer is project owner (shows volume slider, can play all). */
+  isOwner?: boolean;
+  /** Called when owner changes mixVolume on a filled slot. */
+  onVolumeChange?: (slotId: string, volume: number) => void;
+  /** Called when user wants to re-record their own filled slot. */
+  onSlotReRecord?: (slot: VoiceSlot) => void;
 }
 
 export default function LyricLineCard({
@@ -26,6 +32,9 @@ export default function LyricLineCard({
   isActive = false,
   isPaused = false,
   currentGuestId,
+  isOwner,
+  onVolumeChange,
+  onSlotReRecord,
 }: LyricLineCardProps) {
   const filledCount = slots.filter((s) => s.status === "filled").length;
 
@@ -77,6 +86,13 @@ export default function LyricLineCard({
                 : undefined
             }
             currentGuestId={currentGuestId}
+            isOwner={isOwner}
+            onVolumeChange={onVolumeChange}
+            onReRecord={
+              slot.status === "filled" && onSlotReRecord
+                ? () => onSlotReRecord(slot)
+                : undefined
+            }
           />
         ))}
       </div>

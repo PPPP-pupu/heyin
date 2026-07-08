@@ -67,15 +67,17 @@ export function mapTencentDocsToChorusProject(docs: {
 }
 
 function mapSubmissionDoc(row: Record<string, unknown>): VoiceSubmission {
+  const vis = row.visibility as string | undefined;
   return {
     id: String(row.id ?? ""),
     slotId: String(row.slotId ?? ""),
     guestId: (row.guestId as string) ?? undefined,
     nickname: String(row.nickname ?? ""),
     province: (row.province as string) ?? undefined,
-    // audioPath stores the Storage path, not a public URL
     audioId: String(row.audioPath ?? ""),
     duration: Number(row.duration ?? 0),
+    visibility: (vis === "public" || vis === "creatorOnly") ? vis : "public", // legacy default
+    mixVolume: (row.mixVolume as number) ?? 1,
     createdAt: String(row.createdAt ?? ""),
   };
 }

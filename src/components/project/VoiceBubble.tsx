@@ -66,7 +66,8 @@ export default function VoiceBubble(props: VoiceBubbleProps) {
     // ── Claimed: locked — shows who is recording ───────────
     case "claimed": {
       const isSelf = currentGuestId != null && slot.claimedBy === currentGuestId;
-      const label = isSelf ? "You are recording..." : "Someone is recording...";
+      const label = isSelf ? "Reserved for you" : "Someone is recording...";
+      const subLabel = isSelf ? "Finish recording or close to release" : "Try another slot";
       return (
         <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3 cursor-default">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-100 text-sm text-amber-600">
@@ -77,6 +78,7 @@ export default function VoiceBubble(props: VoiceBubbleProps) {
           </div>
           <div className="min-w-0 flex-1">
             <span className={`text-sm font-medium ${isSelf ? "text-amber-800" : "text-amber-700"}`}>{label}</span>
+            <p className="text-xs text-amber-500 mt-0.5">{subLabel}</p>
           </div>
         </div>
       );
@@ -103,8 +105,8 @@ function renderEmpty(isSelected?: boolean, onSelect?: () => void) {
       <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm ${isSelected ? "bg-indigo-100 text-indigo-500" : "bg-gray-50 text-gray-300"}`}>
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
       </div>
-      <span className={`text-sm ${isSelected ? "text-indigo-600 font-medium" : "text-gray-300"}`}>
-        {isSelected ? "Selected — tap to record" : "Record your voice"}
+      <span className={`text-sm ${isSelected ? "text-indigo-600 font-medium" : "text-gray-400"}`}>
+        {isSelected ? "Selected — tap to record" : "Tap to record this line"}
       </span>
     </div>
   );

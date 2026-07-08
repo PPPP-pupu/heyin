@@ -7,7 +7,7 @@ export default function WorkAudioPlayer({ audioUrl, title }: WorkAudioPlayerProp
   if (!audioUrl) {
     return (
       <div className="rounded-xl bg-gray-50 p-6 text-center">
-        <p className="text-sm text-gray-400">Loading audio...</p>
+        <p className="text-sm text-gray-400">Loading final chorus...</p>
       </div>
     );
   }

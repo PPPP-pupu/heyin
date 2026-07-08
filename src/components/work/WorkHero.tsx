@@ -27,7 +27,7 @@ export default function WorkHero({
       </p>
 
       <p className="mt-3 text-center text-sm text-indigo-200/80">
-        A chorus by {participantCount} voices
+        Final chorus from {participantCount} voices
       </p>
 
       {/* Stats */}

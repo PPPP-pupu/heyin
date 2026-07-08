@@ -70,10 +70,9 @@ export default function CreatePage() {
       router.push(`/project/${savedProject.id}?owner=${rawToken}`);
     } catch (err) {
       console.error("[CreatePage] saveProject failed:", err);
-      // Show the most detailed error info available
       const msg = err instanceof Error
         ? err.message
-        : (typeof err === "string" ? err : JSON.stringify(err) || "Failed to save project. Please try again.");
+        : "Could not create project. Please check your connection and try again.";
       setSaveError(msg);
       setIsSubmitting(false);
     }

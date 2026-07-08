@@ -68,7 +68,7 @@ export default function RecordingModal({
     try {
       await onSubmit({ nickname: nickname.trim(), province: province.trim() });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Upload failed. Please try again.";
+      const msg = err instanceof Error ? err.message : "Upload failed. Your recording is still here. Please try again.";
       const short = msg.length > 120 ? msg.slice(0, 120) + "..." : msg;
       setSubmitError(short);
     } finally {
@@ -94,7 +94,10 @@ export default function RecordingModal({
           {/* Lyric text */}
           <div className="mb-4 text-center">
             <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-              You are recording
+              Record this line
+            </p>
+            <p className="mt-0.5 text-xs text-gray-400">
+              You can preview before submitting
             </p>
             <p className="mt-1.5 text-base font-semibold text-gray-900 leading-relaxed">
               {slot.lyricText}
@@ -118,7 +121,7 @@ export default function RecordingModal({
                   <line x1="12" x2="12" y1="19" y2="22" />
                 </svg>
               </div>
-              <p className="text-sm font-medium text-gray-500">Ready to record</p>
+              <p className="text-sm font-medium text-gray-500">Tap Start Recording when ready</p>
             </div>
           )}
 
@@ -135,6 +138,7 @@ export default function RecordingModal({
               <p className="text-4xl font-mono font-bold text-gray-900 tabular-nums">
                 {formatTime(elapsedMs)}
               </p>
+              <p className="text-xs text-red-400">Tap Stop when you finish</p>
             </div>
           )}
 
@@ -149,7 +153,7 @@ export default function RecordingModal({
 
               {audioBlobUrl && (
                 <div className="rounded-2xl bg-gray-50 p-3">
-                  <p className="mb-1.5 text-xs font-medium text-gray-500">Preview</p>
+                  <p className="mb-1.5 text-xs font-medium text-gray-500">Preview your recording</p>
                   <audio controls src={audioBlobUrl} className="w-full" style={{ height: 36 }} />
                 </div>
               )}
@@ -202,7 +206,7 @@ export default function RecordingModal({
               <button type="button" onClick={handleSubmit}
                 disabled={!nickname.trim() || isSubmitting}
                 className="flex-1 rounded-xl bg-indigo-500 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-600 active:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                {isSubmitting ? "Saving..." : "Submit"}
+                {isSubmitting ? "Uploading..." : "Submit Voice"}
               </button>
             </div>
           )}

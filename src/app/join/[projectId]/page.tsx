@@ -69,6 +69,7 @@ export default function JoinPage() {
   const [claimedSlotId, setClaimedSlotId] = useState<string | null>(null);
   const [claimError, setClaimError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect */
@@ -196,8 +197,10 @@ export default function JoinPage() {
       setClaimedSlotId(null);
       clearSelection();
       recorder.resetRecording();
+      setSubmitSuccess(true);
+      setTimeout(() => setSubmitSuccess(false), 5000);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Submit failed. Please try again.";
+      const msg = err instanceof Error ? err.message : "Upload failed. Your recording is still here. Please try again.";
       setSubmitError(msg);
     }
   }
@@ -341,6 +344,19 @@ export default function JoinPage() {
           {submitError}
         </div>
       )}
+      {submitSuccess && (
+        <div className="mx-4 mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 text-center">
+          Voice submitted! Tap your filled slot to listen.
+        </div>
+      )}
+
+      {/* Onboarding hint — compact, above slots */}
+      <div className="mx-4 mt-4 rounded-xl border border-indigo-100 bg-indigo-50/50 px-4 py-3">
+        <p className="text-xs font-medium text-indigo-700">How to join</p>
+        <p className="mt-1 text-xs text-indigo-600/70">
+          1. Pick an empty slot &nbsp;→&nbsp; 2. Record your line &nbsp;→&nbsp; 3. Preview &nbsp;→&nbsp; 4. Submit
+        </p>
+      </div>
 
       <SlotPicker
         lines={project.lyricLines}

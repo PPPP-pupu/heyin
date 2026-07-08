@@ -13,7 +13,8 @@ export default function VersionSelector({
 
   return (
     <div className="rounded-xl border border-gray-100 bg-white p-4">
-      <h3 className="text-sm font-semibold text-gray-700">Version</h3>
+      <h3 className="text-sm font-semibold text-gray-700">Chorus versions</h3>
+      <p className="mt-0.5 text-xs text-gray-400">v1, v2... are different generated exports of the same chorus.</p>
       <div className="mt-2 flex gap-2">
         {Array.from({ length: versionCount }).map((_, i) => (
           <button

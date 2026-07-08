@@ -40,7 +40,7 @@ export default function ExportButton({
 
   // Loading / Mixing
   if (state === "loading" || state === "mixing") {
-    const stageLabel = state === "loading" ? "Loading voices" : "Mixing chorus";
+    const stageLabel = state === "loading" ? "Loading voices" : state === "mixing" ? "Mixing chorus" : "Creating WAV";
     const pct = progress ? Math.round(progress.progress * 100) : 0;
 
     return (
@@ -101,6 +101,9 @@ export default function ExportButton({
       <div className="flex flex-col gap-2 rounded-xl border border-red-200 bg-red-50 p-4">
         <p className="text-sm font-semibold text-red-600">Export Failed</p>
         {error && <p className="text-xs text-red-500">{error}</p>}
+        <p className="text-xs text-red-400">
+          Check that all recordings can be played, then try again.
+        </p>
         <button
           type="button"
           onClick={onExport}

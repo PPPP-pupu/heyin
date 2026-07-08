@@ -81,6 +81,14 @@ export default function RecordingModal({
     }
   }
 
+  function handleReRecord() {
+    // Stop any preview audio playback
+    setSubmitError(null);
+    // Reset recorder state — discards current temporary recording
+    recorder.resetRecording();
+    // Nickname, province, and visibility are preserved in state
+  }
+
   return (
     <>
       {/* Backdrop — disabled during recording */}
@@ -163,6 +171,10 @@ export default function RecordingModal({
                 </div>
               )}
 
+              <p className="text-xs text-gray-400 text-center">
+                不满意可以重新录，只有点击提交后才会上传。
+              </p>
+
               <div>
                 <label htmlFor="nickname" className="text-sm font-medium text-gray-700">你的昵称</label>
                 <input id="nickname" type="text"
@@ -205,7 +217,7 @@ export default function RecordingModal({
             <div className="flex gap-3">
               <button type="button" onClick={onClose}
                 className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 active:bg-gray-100 transition-colors">
-                Cancel
+                取消
               </button>
               <button type="button" onClick={() => recorder.startRecording()}
                 className="flex-1 rounded-xl bg-indigo-500 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-600 active:bg-indigo-700 transition-colors">
@@ -223,14 +235,14 @@ export default function RecordingModal({
 
           {state === "recorded" && (
             <div className="flex gap-3">
-              <button type="button" onClick={() => recorder.resetRecording()}
+              <button type="button" onClick={handleReRecord}
                 className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 active:bg-gray-100 transition-colors">
-                Re-record
+                重新录制
               </button>
               <button type="button" onClick={handleSubmit}
                 disabled={!nickname.trim() || isSubmitting}
                 className="flex-1 rounded-xl bg-indigo-500 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-600 active:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                {isSubmitting ? "Uploading..." : "Submit Voice"}
+                {isSubmitting ? "上传中..." : "提交声音"}
               </button>
             </div>
           )}

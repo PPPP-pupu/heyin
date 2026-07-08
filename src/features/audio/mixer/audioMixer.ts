@@ -6,14 +6,30 @@ export interface MixOptions {
   onProgress?: (progress: MixProgress) => void;
 }
 
+/** Load a blob by audio identifier. Injected for cloud mode support. */
+export type LoadAudioBlob = (id: string) => Promise<Blob | null>;
+
+export interface AudioMixerConfig {
+  /** Injected blob loader. If not provided, defaults to local IndexedDB loadAudio. */
+  loadAudioBlob?: LoadAudioBlob;
+}
+
 /**
  * AudioMixer — renders a PlaybackTimeline into a single mixed AudioBuffer.
  *
  * Uses OfflineAudioContext for non-real-time rendering.
  * Supports progress callback for UI feedback during long mixes.
+ *
+ * In Tencent cloud mode, inject loadAudioBlob = audioRepository.loadAudio
+ * to resolve cloud:// fileIDs to playable blobs.
  */
 export class AudioMixer {
   private sampleRate = 44100;
+  private loadAudioBlob: LoadAudioBlob;
+
+  constructor(config?: AudioMixerConfig) {
+    this.loadAudioBlob = config?.loadAudioBlob ?? loadAudio;
+  }
 
   async mix(timeline: PlaybackTimeline, options?: MixOptions): Promise<MixResult> {
     const onProgress = options?.onProgress;
@@ -34,13 +50,13 @@ export class AudioMixer {
       length: Math.ceil(totalDuration * this.sampleRate) + this.sampleRate,
     });
 
-    // Stage 1: Loading blobs from IndexedDB
+    // Stage 1: Loading blobs via injected loader (or local fallback)
     onProgress?.({ stage: "loading", progress: 0, totalTracks, currentTrack: 0 });
 
     const loaded: { track: TimelineTrack; blob: Blob }[] = [];
     for (const line of timeline.lines) {
       for (const track of line.tracks) {
-        const blob = await loadAudio(track.source.id);
+        const blob = await this.loadAudioBlob(track.source.id);
         if (blob) loaded.push({ track, blob });
         trackIdx++;
         onProgress?.({

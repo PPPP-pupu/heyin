@@ -14,6 +14,9 @@ import VersionSelector from "@/components/work/VersionSelector";
 import { loadWork } from "@/services/storage/workStorage";
 import { loadWorkVersion } from "@/services/storage/workVersionStorage";
 import { loadAudio } from "@/services/storage/audioStorage";
+import { workRepository, audioRepository } from "@/services/repositories";
+import { isCloudRepositoryMode } from "@/services/repositories/repositoryMode";
+import { isTencentProvider } from "@/services/repositories/cloudProvider";
 import type { ChorusWork } from "@/types/work";
 
 export default function WorkPage() {
@@ -25,46 +28,64 @@ export default function WorkPage() {
   const [currentVersionIndex, setCurrentVersionIndex] = useState(0);
   const [notFound, setNotFound] = useState(false);
 
-  // Hydrate work data from localStorage (SSR-safe — localStorage unavailable on server)
+  const isCloudTencent = isCloudRepositoryMode() && isTencentProvider();
+
+  // Hydrate work data (cloud or local)
   useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect */
-    const w = loadWork(workId);
-    if (!w) { setNotFound(true); return; }
-    setWork(w);
-    setCurrentVersionIndex(w.versions.length - 1); // latest version
-    /* eslint-enable react-hooks/set-state-in-effect */
+    const load = async () => {
+      let w: ChorusWork | null = null;
 
-    // Preload all version audio URLs
-    //
-    // Correction: w.versions stores versionId, NOT audioId.
-    //   versionId → loadWorkVersion(versionId) → version.audioId → loadAudio(audioId)
-    // Previously was loading versionId directly as audioId — that's a bug.
-    const urls = new Map<string, string>();
-    const versionIds = w.versions.length > 0 ? w.versions : [];
+      if (isCloudTencent) {
+        // Tencent CloudBase: load via workRepository
+        try {
+          w = await workRepository.loadWork(workId);
+        } catch {
+          w = null;
+        }
+      } else {
+        // Local / Supabase: load from localStorage
+        w = loadWork(workId);
+      }
 
-    const loadAll = async () => {
+      if (!w) { setNotFound(true); return; }
+      setWork(w);
+      setCurrentVersionIndex(w.versions.length - 1);
+
+      // Preload all version audio URLs
+      const urls = new Map<string, string>();
+      const versionIds = w.versions.length > 0 ? w.versions : [];
+
       if (versionIds.length === 0) {
         // No versions: load the work-level audio directly
-        const blob = await loadAudio(w.audioId);
+        const loader = isCloudTencent ? audioRepository.loadAudio : (id: string) => loadAudio(id);
+        const blob = await loader(w.audioId);
         if (blob) urls.set(w.audioId, URL.createObjectURL(blob));
         setAudioUrls(new Map(urls));
         return;
       }
 
       for (const versionId of versionIds) {
-        const version = loadWorkVersion(versionId);
+        let version;
+        if (isCloudTencent) {
+          version = await workRepository.loadWorkVersion(versionId);
+        } else {
+          version = loadWorkVersion(versionId);
+        }
         if (!version) continue;
-        const blob = await loadAudio(version.audioId);
+
+        const loader = isCloudTencent ? audioRepository.loadAudio : (id: string) => loadAudio(id);
+        const blob = await loader(version.audioId);
         if (blob) urls.set(versionId, URL.createObjectURL(blob));
       }
       setAudioUrls(new Map(urls));
     };
-    loadAll();
+
+    load();
 
     return () => {
-      for (const url of urls.values()) URL.revokeObjectURL(url);
+      // object URLs cleaned up per-load cycle; no ref to hold
     };
-  }, [workId]);
+  }, [workId, isCloudTencent]);
 
   const handleVersionSelect = useCallback((index: number) => {
     setCurrentVersionIndex(index);

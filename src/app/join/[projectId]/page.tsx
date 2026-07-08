@@ -56,6 +56,7 @@ export default function JoinPage() {
     setSelectedSlot,
     clearSelection,
     isLoading,
+    refreshProject,
   } = useProject(resolvedProjectId ?? "__loading__");
 
   const recorder = useRecorder();
@@ -77,6 +78,21 @@ export default function JoinPage() {
     }
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [isLoaded, profile]);
+
+  // Refresh project slots when returning to the tab (another user may have filled a slot)
+  useEffect(() => {
+    function handleVisibility() {
+      if (document.visibilityState === "visible" && resolvedProjectId) {
+        refreshProject({ silent: true });
+      }
+    }
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", handleVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", handleVisibility);
+    };
+  }, [resolvedProjectId, refreshProject]);
 
   function handleSaveNickname() {
     const trimmed = gateNickname.trim();
@@ -103,13 +119,25 @@ export default function JoinPage() {
     try {
       const updated = await projectRepository.claimSlot(project, slot.id, profile.id);
       if (!updated) {
-        setClaimError("This slot was just taken. Please choose another one.");
+        // Conflict: someone else claimed this slot
+        setClaimError("This slot was just taken. Refreshing available slots...");
+        // Auto-refresh silently so the user sees updated slot statuses
+        const refreshed = await refreshProject({ silent: true });
+        if (refreshed) setProject(refreshed);
+        // Also update the error after a brief moment
+        setTimeout(() => {
+          setClaimError((prev) =>
+            prev === "This slot was just taken. Refreshing available slots..."
+              ? "This slot was just taken. Please choose another one."
+              : prev
+          );
+        }, 800);
+        setSelectedSlot(null);
         return;
       }
       setProject(updated);
       setClaimedSlotId(slot.id);
-      // Optimistic local update — avoids Supabase read-after-write race
-      // where the reloaded project might not reflect the UPDATE yet.
+      // Optimistic local update — avoids read-after-write race
       const claimedSlot: VoiceSlot = {
         ...slot,
         status: "claimed",
@@ -118,18 +146,29 @@ export default function JoinPage() {
       };
       setSelectedSlot(claimedSlot);
     } catch (err) {
-      setClaimError(err instanceof Error ? err.message : "Failed to claim slot.");
+      // Refresh silently on error so UI shows latest state
+      await refreshProject({ silent: true });
+      const msg = err instanceof Error ? err.message : "Failed to claim slot. Please try again.";
+      setClaimError(msg);
+      setSelectedSlot(null);
     }
   }
 
-  /** Release claim via repository. */
+  /** Release claim via repository. Always cleans local state. */
   async function handleModalClose() {
+    // release is best-effort; stale cleanup is fallback
     if (project && claimedSlotId) {
       try {
         const released = await projectRepository.releaseClaim(project, claimedSlotId);
-        if (released) setProject(released);
+        if (released) {
+          setProject(released);
+        } else {
+          // Release failed (slot may have changed) — silently refresh
+          await refreshProject({ silent: true });
+        }
       } catch {
-        // silently fail — claim will be cleaned up by stale cleanup
+        // Release threw — silently refresh, claim will be cleaned by stale cleanup
+        await refreshProject({ silent: true });
       }
     }
     setClaimedSlotId(null);
@@ -274,8 +313,19 @@ export default function JoinPage() {
 
       {/* Claim / Submit errors */}
       {claimError && (
-        <div className="mx-4 mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-          {claimError}
+        <div className="mx-4 mt-3 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+          <span className="flex-1">{claimError}</span>
+          <button
+            type="button"
+            onClick={async () => {
+              const refreshed = await refreshProject({ silent: true });
+              if (refreshed) setProject(refreshed);
+              setClaimError(null);
+            }}
+            className="shrink-0 rounded-lg border border-red-300 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
+          >
+            Refresh Slots
+          </button>
         </div>
       )}
       {submitError && (

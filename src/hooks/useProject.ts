@@ -33,25 +33,32 @@ export function useProject(projectId: string) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const refreshProject = useCallback(async () => {
+  const refreshProject = useCallback(async (options?: { silent?: boolean }): Promise<ChorusProject | null> => {
     if (projectId === "demo" && isLocal) {
       setProject(demoProject);
-      return;
+      return demoProject;
     }
-    setIsLoading(true);
+    if (!options?.silent) {
+      setIsLoading(true);
+    }
     setError(null);
     try {
       const p = await projectRepository.loadProject(projectId);
       if (p) {
         const cleaned = await projectRepository.cleanupStaleClaims(p);
         setProject(cleaned);
+        return cleaned;
       } else {
         setProject(null);
+        return null;
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load project.");
+      return null;
     } finally {
-      setIsLoading(false);
+      if (!options?.silent) {
+        setIsLoading(false);
+      }
     }
   }, [projectId, isLocal]);
 

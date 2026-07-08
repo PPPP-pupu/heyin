@@ -6,6 +6,12 @@ import {
   createTencentShareId,
 } from "./tencentProjectMapper";
 import { isClaimExpired } from "@/features/voice-slot/claimSlot";
+import {
+  collectVoiceSubmissionFileIds,
+  collectWorkFileIds,
+  deleteTencentFilesBestEffort,
+  deleteDocsByField,
+} from "./tencentDeleteCleanup";
 
 // ============================================================================
 // Helpers
@@ -176,23 +182,69 @@ export const tencentProjectRepository: ProjectRepository = {
   async deleteProject(projectId) {
     const d = await db();
 
-    // CloudBase does not cascade — delete children first
-    const collections = ["voice_submissions", "voice_slots", "lyric_lines"];
-    for (const col of collections) {
+    // 1. Collect CloudBase Storage fileIDs before deleting docs
+    let fileIds: string[] = [];
+
+    try {
+      const voiceIds = await collectVoiceSubmissionFileIds(d, projectId);
+      const workIds = await collectWorkFileIds(d, projectId);
+      fileIds = [...voiceIds, ...workIds];
+    } catch {
+      // Best-effort — continue with DB deletion even if collection fails
+    }
+
+    // 2. Delete database documents in safe order (children first)
+    const childCollections = [
+      "voice_submissions",
+      "work_versions",
+      "voice_slots",
+      "lyric_lines",
+      "works",
+    ];
+
+    for (const col of childCollections) {
+      const field = col === "work_versions" ? "projectId" : "projectId";
       try {
-        const res = await d.collection(col).where({ projectId }).get();
-        const data = unwrap(res);
-        const docs = Array.isArray(data) ? data : [];
-        for (const doc of docs) {
-          await d.collection(col).doc(doc.id ?? (doc as Record<string, unknown>)._id).remove();
+        // work_versions uses projectId if available; fall back works-based approach
+        if (col === "work_versions") {
+          // Delete work_versions via works → workId
+          try {
+            const workRes = await d.collection("works").where({ projectId }).get();
+            const workDocs = Array.isArray(unwrap(workRes)) ? unwrap(workRes) : [];
+            for (const wd of workDocs) {
+              const wid = wd.id ?? (wd as Record<string, unknown>)._id;
+              await deleteDocsByField(d, "work_versions", "workId", String(wid));
+            }
+          } catch {
+            // Fallback: try direct projectId query
+            await deleteDocsByField(d, col, field, projectId);
+          }
+        } else if (col === "works") {
+          await deleteDocsByField(d, col, field, projectId);
+        } else {
+          await deleteDocsByField(d, col, field, projectId);
         }
       } catch {
-        // Best-effort — some collections may be empty or not exist
+        // Best-effort — some collections may be empty
       }
     }
 
-    // TODO: cascade works/work_versions when CN-7 is implemented
+    // 3. Delete Storage files (best-effort, after DB docs are gone)
+    if (fileIds.length > 0) {
+      try {
+        const storageWarnings = await deleteTencentFilesBestEffort(fileIds);
+        if (storageWarnings.length > 0) {
+          console.warn(
+            `[Tencent Delete] Storage cleanup warnings for project ${projectId}:`,
+            storageWarnings
+          );
+        }
+      } catch {
+        // Storage cleanup failure does not block DB deletion
+      }
+    }
 
+    // 4. Delete the project document last
     await d.collection("projects").doc(projectId).remove();
   },
 

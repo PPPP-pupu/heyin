@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import AppShell from "@/components/common/AppShell";
@@ -27,8 +27,19 @@ export default function WorkPage() {
   const [audioUrls, setAudioUrls] = useState<Map<string, string>>(new Map());
   const [currentVersionIndex, setCurrentVersionIndex] = useState(0);
   const [notFound, setNotFound] = useState(false);
+  const blobUrlRef = useRef<string[]>([]);
 
   const isCloudTencent = isCloudRepositoryMode() && isTencentProvider();
+
+  // Cleanup blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      for (const url of blobUrlRef.current) {
+        URL.revokeObjectURL(url);
+      }
+      blobUrlRef.current = [];
+    };
+  }, []);
 
   // Hydrate work data (cloud or local)
   useEffect(() => {
@@ -36,14 +47,12 @@ export default function WorkPage() {
       let w: ChorusWork | null = null;
 
       if (isCloudTencent) {
-        // Tencent CloudBase: load via workRepository
         try {
           w = await workRepository.loadWork(workId);
         } catch {
           w = null;
         }
       } else {
-        // Local / Supabase: load from localStorage
         w = loadWork(workId);
       }
 
@@ -51,15 +60,25 @@ export default function WorkPage() {
       setWork(w);
       setCurrentVersionIndex(w.versions.length - 1);
 
-      // Preload all version audio URLs
+      // Revoke previous URLs before creating new ones
+      for (const url of blobUrlRef.current) URL.revokeObjectURL(url);
+      blobUrlRef.current = [];
+
       const urls = new Map<string, string>();
       const versionIds = w.versions.length > 0 ? w.versions : [];
 
+      const makeUrl = (blob: Blob) => {
+        const u = URL.createObjectURL(blob);
+        blobUrlRef.current.push(u);
+        return u;
+      };
+
       if (versionIds.length === 0) {
-        // No versions: load the work-level audio directly
-        const loader = isCloudTencent ? audioRepository.loadAudio : (id: string) => loadAudio(id);
+        const loader = isCloudTencent
+          ? (id: string) => audioRepository.loadAudio(id)
+          : (id: string) => Promise.resolve(loadAudio(id));
         const blob = await loader(w.audioId);
-        if (blob) urls.set(w.audioId, URL.createObjectURL(blob));
+        if (blob) urls.set(w.audioId, makeUrl(blob));
         setAudioUrls(new Map(urls));
         return;
       }
@@ -73,18 +92,16 @@ export default function WorkPage() {
         }
         if (!version) continue;
 
-        const loader = isCloudTencent ? audioRepository.loadAudio : (id: string) => loadAudio(id);
+        const loader = isCloudTencent
+          ? (id: string) => audioRepository.loadAudio(id)
+          : (id: string) => Promise.resolve(loadAudio(id));
         const blob = await loader(version.audioId);
-        if (blob) urls.set(versionId, URL.createObjectURL(blob));
+        if (blob) urls.set(versionId, makeUrl(blob));
       }
       setAudioUrls(new Map(urls));
     };
 
     load();
-
-    return () => {
-      // object URLs cleaned up per-load cycle; no ref to hold
-    };
   }, [workId, isCloudTencent]);
 
   const handleVersionSelect = useCallback((index: number) => {

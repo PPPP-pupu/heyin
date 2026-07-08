@@ -266,7 +266,7 @@ export default function ProjectDetailPage() {
           </div>
         </div>
 
-        {/* Cloud notice — Commit 7: participants can submit via Join page */}
+        {/* Cloud notice — participants can submit via Join page */}
         {isCloud && (
           <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
             Cloud submissions are enabled. Share the link for others to join and record.
@@ -344,7 +344,8 @@ export default function ProjectDetailPage() {
         </div>
       </div>
 
-      {/* Recording modal — only in local mode until Commit 7 */}
+      {/* Recording modal — local mode: creator can record directly.
+           Cloud mode: creator records via the Join page like other participants. */}
       {!isCloud && selectedSlot && (
         <RecordingModal
           slot={selectedSlot}

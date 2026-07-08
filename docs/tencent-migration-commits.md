@@ -36,40 +36,53 @@
   - `.env.example` — Tencent env var placeholders
 - No Tencent SDK added. No runtime behavior changed.
 
-## CN-4 — Tencent Project Repository
+## CN-4 — Tencent Project Repository ✅
 
-**Scope:** Full implementation.
+**Scope:** Full implementation. **DONE.**
 
 - File: `src/services/repositories/tencent/tencentProjectRepository.ts`
 - All 12 methods: saveProject, loadProject, loadProjectByShareId, loadAllProjects, deleteProject, setProjectStatus, submitRecording, deleteSubmission, claimSlot, releaseClaim, cleanupStaleClaims
 - Wire into repository resolver when `provider === "tencent"`
 
-## CN-5 — Tencent Audio Repository
+## CN-5 — Tencent Audio Repository ✅
 
-**Scope:** Full implementation.
+**Scope:** Full implementation. **DONE.**
 
 - File: `src/services/repositories/tencent/tencentAudioRepository.ts`
-- saveAudio → COS/Storage upload
-- loadAudio → fetch from COS
-- deleteAudio → remove from COS
+- New: `src/services/tencent/storageUrls.ts`
+- saveAudio → CloudBase Storage upload, returns cloud:// fileID
+- loadAudio → resolve fileID to temp URL → fetch → Blob
+- deleteAudio → delete from CloudBase Storage
 - Wire into repository resolver
 
-## CN-6 — Tencent Submission Flow
+## CN-5.1 — CloudBase Auth Bootstrap ✅
 
-**Scope:** Integration.
+**Scope:** Fix. **DONE.**
 
-- Wire `createVoiceSubmission` → `useSubmitRecording` to Tencent provider
-- Recording submit updates Tencent DB and slot status
-- Playback resolves Tencent Storage paths
+- `client.ts` calls `auth.signInAnonymously()` after init
+- `getTencentDatabase()` awaits auth readiness
+- Requires: anonymous login enabled, security domain added, accessKey set
 
-## CN-7 — Tencent Work Export
+## CN-6 — Tencent Submission Flow ✅
 
-**Scope:** Integration.
+**Scope:** Integration. **Merged into CN-5.**
 
-- Upload mixed WAV to Tencent Storage
-- Save works and work_versions to Tencent DB
+- `createVoiceSubmission` → `useSubmitRecording` works for all providers
+- Join page RecordingModal enabled in Tencent mode
+- Individual voice playback resolves cloud:// fileIDs
 
-## CN-8 — China H5 MVP QA
+## CN-7 — Tencent Work Export ✅
+
+**Scope:** Full implementation. **DONE.**
+
+- New: `tencentWorkRepository.ts` (7 methods)
+- New: `tencentWorkMapper.ts`
+- AudioMixer: injectable loadAudioBlob for cloud sources
+- useExport: Tencent path for WAV upload + work/version persistence
+- Work page: cloud mode loading via workRepository
+- Multi-version export + Version Selector
+
+## CN-8 — China H5 MVP QA ⬜
 
 **Scope:** Full E2E testing on Chinese mobile network with Tencent backend.
 

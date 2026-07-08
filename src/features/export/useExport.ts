@@ -103,14 +103,9 @@ export function useExport(project: ChorusProject | null): UseExportReturn {
         // ============================================
         // Tencent CloudBase export path
         // ============================================
-        const workId = crypto.randomUUID();
         const versionId = crypto.randomUUID();
-        const wavPath = `works/${workId}/versions/${versionId}.wav`;
 
-        // Upload mixed WAV to CloudBase Storage
-        const audioId = await audioRepository.saveAudio(wavBlob, wavPath);
-
-        // Check for existing work
+        // Check for existing work BEFORE building the upload path
         let existingWork: ChorusWork | null = null;
         try {
           const allWorks = await workRepository.loadAllWorks();
@@ -118,6 +113,12 @@ export function useExport(project: ChorusProject | null): UseExportReturn {
         } catch {
           // Best-effort — create new work on failure
         }
+
+        const chorusWorkId = existingWork?.id ?? crypto.randomUUID();
+        const wavPath = `works/${chorusWorkId}/versions/${versionId}.wav`;
+
+        // Upload mixed WAV to CloudBase Storage
+        const audioId = await audioRepository.saveAudio(wavBlob, wavPath);
 
         let chorusWork: ChorusWork;
 
@@ -134,7 +135,7 @@ export function useExport(project: ChorusProject | null): UseExportReturn {
           };
         } else {
           chorusWork = {
-            id: workId,
+            id: chorusWorkId,
             projectId: project.id,
             title: project.title,
             songName: project.songName,

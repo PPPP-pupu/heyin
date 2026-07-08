@@ -2,6 +2,7 @@ import AppShell from "@/components/common/AppShell";
 import AppHeader from "@/components/common/AppHeader";
 import PrimaryButton from "@/components/common/PrimaryButton";
 import SecondaryButton from "@/components/common/SecondaryButton";
+import TemporaryAccessWarning from "@/components/common/TemporaryAccessWarning";
 
 export default function HomePage() {
   return (
@@ -22,6 +23,7 @@ export default function HomePage() {
 
       {/* Actions */}
       <section className="flex flex-col gap-3 px-6 pb-12">
+        <TemporaryAccessWarning />
         <PrimaryButton href="/create">Create Chorus Project</PrimaryButton>
         <SecondaryButton href="/explore">Explore Projects</SecondaryButton>
       </section>

@@ -1,10 +1,19 @@
+import { getPublicBaseUrl } from "./publicBaseUrl";
+
 /**
  * Generate the join URL for a chorus project.
- * Uses the current page's origin so it works with both localhost and network IPs.
+ *
+ * Uses NEXT_PUBLIC_HEYIN_PUBLIC_BASE_URL if configured (production/stable domain),
+ * otherwise falls back to window.location.origin (local dev or non-EdgeOne deploy).
+ *
+ * Do NOT generate share links from temporary EdgeOne Preview URLs —
+ * they expire after 3 hours. Set NEXT_PUBLIC_HEYIN_PUBLIC_BASE_URL
+ * to a custom domain before wider testing.
  */
 export function generateJoinUrl(projectId: string): string {
-  if (typeof window !== "undefined") {
-    return `${window.location.origin}/join/${projectId}`;
+  const baseUrl = getPublicBaseUrl();
+  if (baseUrl) {
+    return `${baseUrl}/join/${projectId}`;
   }
   return `/join/${projectId}`;
 }

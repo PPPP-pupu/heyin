@@ -16,6 +16,7 @@ import { projectRepository } from "@/services/repositories";
 import { isCloudRepositoryMode } from "@/services/repositories/repositoryMode";
 import { isTencentProvider } from "@/services/repositories/cloudProvider";
 import { playAudioId } from "@/utils/audio";
+import { isUnstableShareOrigin } from "@/utils/publicBaseUrl";
 import type { VoiceSlot } from "@/types/project";
 
 export default function JoinPage() {
@@ -308,6 +309,13 @@ export default function JoinPage() {
           {isTencent
             ? "Tencent cloud recording is enabled. Your voice will be uploaded to CloudBase Storage after submit."
             : "Cloud recording is enabled. Your voice will be uploaded after submit."}
+        </div>
+      )}
+
+      {/* Temporary EdgeOne access warning */}
+      {isUnstableShareOrigin() && (
+        <div className="mx-4 mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-700 text-center">
+          This link may expire. Ask the host for an updated link if you see a 401 error.
         </div>
       )}
 

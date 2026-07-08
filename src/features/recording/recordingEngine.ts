@@ -41,16 +41,16 @@ export function createRecordingEngine(): RecordingEngine {
       const error = err as DOMException;
       if (error.name === "NotAllowedError") {
         throw new Error(
-          "Microphone access was denied. Please allow microphone access in your browser settings and try again."
+          "麦克风权限被拒绝。请在浏览器设置中允许麦克风访问后重试。"
         );
       }
       if (error.name === "NotFoundError") {
         throw new Error(
-          "No microphone found. Please connect a microphone and try again."
+          "未检测到麦克风。请连接麦克风后重试。"
         );
       }
       throw new Error(
-        "Could not access microphone. Please check your device settings."
+        "无法访问麦克风。请检查设备设置。"
       );
     }
 

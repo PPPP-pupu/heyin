@@ -197,7 +197,7 @@ export default function JoinPage() {
       setSubmitSuccess(true);
       setTimeout(() => setSubmitSuccess(false), 5000);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Upload failed. Your recording is still here. Please try again.";
+      const msg = err instanceof Error ? err.message : "上传失败，录音还在，请再试一次。";
       setSubmitError(msg);
     }
   }
@@ -251,7 +251,7 @@ export default function JoinPage() {
           <p className="text-sm text-gray-500">输入昵称后即可加入。</p>
           <input type="text"
             className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-            placeholder="e.g. 小雨" value={gateNickname} onChange={(e) => setGateNickname(e.target.value)} maxLength={20}
+            placeholder="例如：小雨" value={gateNickname} onChange={(e) => setGateNickname(e.target.value)} maxLength={20}
             onKeyDown={(e) => e.key === "Enter" && handleSaveNickname()} autoFocus />
           <button type="button" onClick={handleSaveNickname} disabled={!gateNickname.trim()}
             className="w-full rounded-xl bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-600 disabled:opacity-50">
@@ -281,7 +281,7 @@ export default function JoinPage() {
         <AppHeader title={project.title} showBack />
         <div className="flex flex-col items-center justify-center gap-4 px-6 py-20">
           <p className="text-lg font-semibold text-gray-700">
-            {project.status === "completed" ? "🎉 Chorus Complete!" : "🔒 Chorus Closed"}
+            {project.status === "completed" ? "🎉 合唱已完成！" : "🔒 合唱已关闭"}
           </p>
           <p className="text-sm text-gray-400">
             {project.status === "completed"

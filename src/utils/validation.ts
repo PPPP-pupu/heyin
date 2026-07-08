@@ -19,16 +19,16 @@ export function validateProjectForm(data: ProjectFormData): ValidationResult {
 
   const title = data.title.trim();
   if (!title) {
-    errors.title = "Project title is required.";
+    errors.title = "请输入项目标题。";
   } else if (title.length > 100) {
-    errors.title = "Title must be 100 characters or fewer.";
+    errors.title = "标题不能超过 100 个字符。";
   }
 
   const songName = data.songName.trim();
   if (!songName) {
-    errors.songName = "Song name is required.";
+    errors.songName = "请输入歌曲名称。";
   } else if (songName.length > 100) {
-    errors.songName = "Song name must be 100 characters or fewer.";
+    errors.songName = "歌曲名称不能超过 100 个字符。";
   }
 
   const lyricLines = data.lyrics
@@ -36,14 +36,14 @@ export function validateProjectForm(data: ProjectFormData): ValidationResult {
     .map((l) => l.trim())
     .filter((l) => l.length > 0);
   if (lyricLines.length === 0) {
-    errors.lyrics = "Enter at least one lyric line.";
+    errors.lyrics = "请至少输入一行歌词。";
   } else if (lyricLines.length > 100) {
-    errors.lyrics = "Maximum 100 lyric lines allowed.";
+    errors.lyrics = "最多允许 100 行歌词。";
   }
 
   const slots = data.slotsPerLine;
   if (!Number.isInteger(slots) || slots < 1 || slots > 10) {
-    errors.slotsPerLine = "Slots per line must be between 1 and 10.";
+    errors.slotsPerLine = "每句可录人数需在 1 到 10 之间。";
   }
 
   return {

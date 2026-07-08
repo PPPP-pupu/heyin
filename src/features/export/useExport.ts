@@ -240,7 +240,7 @@ export function useExport(project: ChorusProject | null): UseExportReturn {
     } catch (err) {
       setStatus({
         state: "error",
-        error: err instanceof Error ? err.message : "Export failed.",
+        error: err instanceof Error ? err.message : "导出失败。",
       });
     }
   }, [project, cleanupUrl, isTencent]);

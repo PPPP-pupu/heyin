@@ -80,7 +80,7 @@ export function useRecorder(): UseRecorderReturn {
       startTimer();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to start recording."
+        err instanceof Error ? err.message : "开始录音失败。"
       );
     }
   }, [startTimer]);
@@ -104,7 +104,7 @@ export function useRecorder(): UseRecorderReturn {
       setState("recorded");
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to stop recording."
+        err instanceof Error ? err.message : "停止录音失败。"
       );
       setState("idle");
     }

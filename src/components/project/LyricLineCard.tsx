@@ -11,13 +11,9 @@ interface LyricLineCardProps {
   onSlotDelete?: (slot: VoiceSlot) => void;
   isActive?: boolean;
   isPaused?: boolean;
-  /** Passed through to VoiceBubble for "You are recording..." on claimed slots. */
   currentGuestId?: string;
-  /** True if viewer is project owner (shows volume slider, can play all). */
   isOwner?: boolean;
-  /** Called when owner changes mixVolume on a filled slot. */
   onVolumeChange?: (slotId: string, volume: number) => void;
-  /** Called when user wants to re-record their own filled slot. */
   onSlotReRecord?: (slot: VoiceSlot) => void;
 }
 
@@ -44,9 +40,7 @@ export default function LyricLineCard({
 
   return (
     <div className={`rounded-2xl border border-gray-100 bg-white p-4 shadow-sm transition-all duration-300 ${activeClasses}`}>
-      {/* Lyric text header */}
       <div className="mb-3 flex items-baseline gap-3">
-        {/* Pulse indicator when active */}
         {isActive && (
           <span className="relative flex h-2 w-2 shrink-0">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-75" />
@@ -61,7 +55,6 @@ export default function LyricLineCard({
           {filledCount}/{slots.length}
         </span>
       </div>
-      {/* Voice slots */}
       <div className="flex flex-col gap-2">
         {slots.map((slot) => (
           <VoiceBubble

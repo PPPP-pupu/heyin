@@ -28,6 +28,9 @@ export class PlaybackEngine {
   private callbacks: PlaybackCallbacks;
   private pauseResolve: (() => void) | null = null;
   private audioManager: AudioManager;
+
+  /** Expose audioManager for live volume updates during playback. */
+  getAudioManager(): AudioManager { return this.audioManager; }
   private cursor: TimelineCursor;
   private currentLineResult: PlayLineResult | null = null;
   private currentLineRemainingMs: number = 0;

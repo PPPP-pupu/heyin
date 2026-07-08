@@ -55,6 +55,7 @@ export default function VoiceBubble(props: VoiceBubbleProps) {
               <div className="flex items-center gap-2">
                 <span className="truncate text-sm font-medium text-gray-900">{sub.nickname}</span>
                 {sub.province && <span className="shrink-0 text-xs text-gray-400">{sub.province}</span>}
+                {isPlaying && <span className="shrink-0 text-xs text-indigo-500 font-medium">播放中</span>}
                 {!canPlay && <span className="shrink-0 text-xs text-gray-400">· 仅创建者可试听</span>}
               </div>
               {canPlay ? (

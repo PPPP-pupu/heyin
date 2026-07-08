@@ -20,7 +20,15 @@ import {
  * - Storage path or fileID in Tencent mode → resolve temp URL → play
  * - Local IndexedDB key → load blob from IndexedDB → play
  */
-export async function playAudioId(audioIdOrPath: string, volume?: number): Promise<void> {
+export interface PlayAudioOptions {
+  volume?: number;
+  onStart?: () => void;
+  onEnded?: () => void;
+  onError?: () => void;
+}
+
+export async function playAudioId(audioIdOrPath: string, options?: number | PlayAudioOptions): Promise<void> {
+  const opts: PlayAudioOptions = typeof options === "number" ? { volume: options } : (options ?? {});
   try {
     let url: string;
 
@@ -37,16 +45,24 @@ export async function playAudioId(audioIdOrPath: string, volume?: number): Promi
       if (!blob) return;
       url = URL.createObjectURL(blob);
       const audio = new Audio(url);
-      if (volume !== undefined) audio.volume = Math.min(1, Math.max(0, volume));
-      await audio.play().catch(() => {});
-      audio.onended = () => URL.revokeObjectURL(url);
+      if (opts.volume !== undefined) audio.volume = Math.min(1, Math.max(0, opts.volume));
+      opts.onStart?.();
+      audio.onended = () => {
+        URL.revokeObjectURL(url);
+        opts.onEnded?.();
+      };
+      audio.onerror = () => opts.onError?.();
+      await audio.play().catch(() => opts.onError?.());
       return;
     }
 
     const audio = new Audio(url);
-    if (volume !== undefined) audio.volume = Math.min(1, Math.max(0, volume));
-    await audio.play().catch(() => {});
+    if (opts.volume !== undefined) audio.volume = Math.min(1, Math.max(0, opts.volume));
+    opts.onStart?.();
+    audio.onended = () => opts.onEnded?.();
+    audio.onerror = () => opts.onError?.();
+    await audio.play().catch(() => opts.onError?.());
   } catch {
-    // Audio not found or unsupported
+    opts.onError?.();
   }
 }

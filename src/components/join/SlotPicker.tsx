@@ -15,6 +15,7 @@ interface SlotPickerProps {
   onSlotPlay: (slot: VoiceSlot) => void;
   /** Called when user wants to re-record their own filled slot. */
   onSlotReRecord?: (slot: VoiceSlot) => void;
+  onSlotDelete?: (slot: VoiceSlot) => void;
   /** Passed through to VoiceBubble for "You are recording..." on claimed slots. */
   currentGuestId?: string;
 }
@@ -36,6 +37,7 @@ export default function SlotPicker({
   onSlotSelect,
   onSlotPlay,
   onSlotReRecord,
+  onSlotDelete,
   currentGuestId,
 }: SlotPickerProps) {
   return (
@@ -55,6 +57,7 @@ export default function SlotPicker({
             onSlotSelect={onSlotSelect}
             onSlotPlay={onSlotPlay}
             onSlotReRecord={onSlotReRecord}
+            onSlotDelete={onSlotDelete}
             currentGuestId={currentGuestId}
           />
         ))}

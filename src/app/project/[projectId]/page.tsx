@@ -61,7 +61,7 @@ export default function ProjectDetailPage() {
   function handleSlotPlay(slot: { submission?: { audioId?: string; mixVolume?: number } }) {
     if (slot.submission?.audioId) {
       const vol = slot.submission.mixVolume ?? 1;
-      playAudioId(slot.submission.audioId, vol);
+      playAudioId(slot.submission.audioId, { volume: vol });
     }
   }
 
@@ -367,6 +367,9 @@ export default function ProjectDetailPage() {
               isOwner={isOwner}
               onVolumeChange={async (slotId, volume) => {
                 if (!project) return;
+                // Live update currently-playing audio
+                playback.updateTrackVolume(slotId, Math.min(1, volume));
+                // Update local state
                 const updated = { ...project, voiceSlots: project.voiceSlots.map(s =>
                   s.id === slotId && s.submission
                     ? { ...s, submission: { ...s.submission, mixVolume: volume } }

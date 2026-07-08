@@ -216,18 +216,36 @@ export default function JoinPage() {
   function handleSlotPlay(slot: VoiceSlot) {
     if (slot.submission?.audioId) {
       const vol = slot.submission.mixVolume ?? 1;
-      playAudioId(slot.submission.audioId, vol);
+      playAudioId(slot.submission.audioId, { volume: vol });
     }
   }
 
   function handleSlotReRecord(slot: VoiceSlot) {
     if (!profile || !project) return;
-    // Open RecordingModal for own filled slot to replace
     if (slot.status === "filled" && slot.submission?.guestId === profile.id) {
       setSelectedSlot(slot);
       setClaimedSlotId(slot.id);
       setClaimError(null);
       setSubmitError(null);
+    }
+  }
+
+  const [deleteConfirmSlotId, setDeleteConfirmSlotId] = useState<string | null>(null);
+  const [deleteSuccessMsg, setDeleteSuccessMsg] = useState<string | null>(null);
+
+  async function handleSlotDelete(slot: VoiceSlot) {
+    if (!project || !profile) return;
+    if (slot.status !== "filled" || slot.submission?.guestId !== profile.id) return;
+    if (deleteConfirmSlotId !== slot.id) { setDeleteConfirmSlotId(slot.id); return; }
+    try {
+      const updated = await projectRepository.deleteSubmission(project, slot.id);
+      setProject(updated);
+      setDeleteConfirmSlotId(null);
+      setDeleteSuccessMsg("录音已删除，这个空位已重新开放。");
+      setTimeout(() => setDeleteSuccessMsg(null), 4000);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "删除失败，请稍后再试。");
+      setDeleteConfirmSlotId(null);
     }
   }
 
@@ -372,6 +390,12 @@ export default function JoinPage() {
         </div>
       )}
 
+      {deleteSuccessMsg && (
+        <div className="mx-4 mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 text-center">
+          {deleteSuccessMsg}
+        </div>
+      )}
+
       {/* Onboarding hint — compact, above slots */}
       <div className="mx-4 mt-4 rounded-xl border border-indigo-100 bg-indigo-50/50 px-4 py-3">
         <p className="text-xs font-medium text-indigo-700">如何加入</p>
@@ -387,6 +411,7 @@ export default function JoinPage() {
         onSlotSelect={handleClaimSlot}
         onSlotPlay={handleSlotPlay}
         onSlotReRecord={handleSlotReRecord}
+        onSlotDelete={handleSlotDelete}
         currentGuestId={profile?.id}
       />
 

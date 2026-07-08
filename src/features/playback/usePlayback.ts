@@ -15,6 +15,8 @@ export interface UsePlaybackReturn {
   pause: () => void;
   resume: () => void;
   stop: () => void;
+  /** Update volume of a currently-playing track in real time (slotId → 0..1). */
+  updateTrackVolume: (slotId: string, volume: number) => void;
 }
 
 /**
@@ -72,5 +74,9 @@ export function usePlayback(project: ChorusProject | null): UsePlaybackReturn {
     setCurrentLineIndex(0);
   }, []);
 
-  return { state, currentLineIndex, play, pause, resume, stop };
+  const updateTrackVolume = useCallback((slotId: string, volume: number) => {
+    engineRef.current?.getAudioManager()?.updateTrackVolume(slotId, volume);
+  }, []);
+
+  return { state, currentLineIndex, play, pause, resume, stop, updateTrackVolume };
 }

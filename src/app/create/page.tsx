@@ -11,6 +11,7 @@ import {
 } from "@/utils/validation";
 import { buildProjectFromForm } from "@/features/project/createProject";
 import { projectRepository } from "@/services/repositories";
+import { generateOwnerToken, hashOwnerToken, saveOwnerToken } from "@/utils/ownerToken";
 
 export default function CreatePage() {
   const router = useRouter();
@@ -55,8 +56,18 @@ export default function CreatePage() {
     setIsSubmitting(true);
     try {
       const project = buildProjectFromForm(formData);
+
+      // Generate owner token for management protection
+      const rawToken = generateOwnerToken();
+      project.ownerTokenHash = await hashOwnerToken(rawToken);
+
       const savedProject = await projectRepository.saveProject(project);
-      router.push(`/project/${savedProject.id}`);
+
+      // Save raw token to localStorage so creator retains access
+      saveOwnerToken(savedProject.id, rawToken);
+
+      // Redirect with ?owner= so the creator page recognizes them
+      router.push(`/project/${savedProject.id}?owner=${rawToken}`);
     } catch (err) {
       console.error("[CreatePage] saveProject failed:", err);
       // Show the most detailed error info available

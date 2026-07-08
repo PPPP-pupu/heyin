@@ -65,6 +65,9 @@ export const tencentProjectRepository: ProjectRepository = {
 
     if (isUuid.test(project.id)) {
       // Existing Tencent project — update metadata only
+      // Preserve existing ownerTokenHash if not provided
+      const existing = await loadFullProject(project.id);
+      const ownerTokenHash = project.ownerTokenHash ?? existing?.ownerTokenHash;
       await d.collection("projects").doc(project.id).set({
         id: project.id,
         shareId,
@@ -72,6 +75,7 @@ export const tencentProjectRepository: ProjectRepository = {
         songName: project.songName,
         slotsPerLine: project.slotsPerLine,
         status: project.status,
+        ownerTokenHash: ownerTokenHash ?? null,
         createdAt: project.createdAt,
         updatedAt: new Date().toISOString(),
       });
@@ -115,6 +119,7 @@ export const tencentProjectRepository: ProjectRepository = {
       songName: project.songName,
       slotsPerLine: project.slotsPerLine,
       status: project.status,
+      ownerTokenHash: project.ownerTokenHash ?? null,
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
     });

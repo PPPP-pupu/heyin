@@ -18,6 +18,7 @@ import ExportButton from "@/components/project/ExportButton";
 import ShareButton from "@/components/common/ShareButton";
 import { projectRepository } from "@/services/repositories";
 import { isCloudRepositoryMode } from "@/services/repositories/repositoryMode";
+import { useOwnerAccess } from "@/hooks/useOwnerAccess";
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -44,6 +45,7 @@ export default function ProjectDetailPage() {
   const playback = usePlayback(project);
   const export_ = useExport(project);
   const isCloud = isCloudRepositoryMode();
+  const { isOwner, isCheckingOwner, ownerWarning } = useOwnerAccess(project, projectId);
 
   const slotsByLine = project
     ? project.lyricLines.map((line) => ({
@@ -186,39 +188,55 @@ export default function ProjectDetailPage() {
           </span>
         </div>
 
-        {/* Status transitions */}
-        <div className="mt-3 flex flex-wrap gap-2">
-          {project.status !== "open" && (
-            <button type="button" onClick={() => handleStatusChange("open")}
-              className="rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors">
-              Open for Recording
-            </button>
-          )}
-          {project.status === "open" && (
-            <button type="button" onClick={() => handleStatusChange("locked")}
-              className="rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100 transition-colors">
-              Lock Submissions
-            </button>
-          )}
-          {(project.status === "open" || project.status === "locked") && (
-            <button type="button" onClick={() => handleStatusChange("completed")}
-              className="rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors">
-              Mark Completed
-            </button>
-          )}
-          {project.status === "completed" && (
-            <button type="button" onClick={() => handleStatusChange("open")}
-              className="rounded-lg bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors">
-              Re-open
-            </button>
-          )}
-          {project.status === "locked" && (
-            <button type="button" onClick={() => handleStatusChange("open")}
-              className="rounded-lg bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors">
-              Re-open
-            </button>
-          )}
-        </div>
+        {/* Owner warning — legacy project */}
+        {ownerWarning && (
+          <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+            {ownerWarning}
+          </div>
+        )}
+
+        {/* Viewer mode notice */}
+        {!isCheckingOwner && !isOwner && (
+          <div className="mt-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-500">
+            Viewer mode. Management actions are hidden.
+          </div>
+        )}
+
+        {/* Status transitions — owner only */}
+        {isOwner && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {project.status !== "open" && (
+              <button type="button" onClick={() => handleStatusChange("open")}
+                className="rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors">
+                Open for Recording
+              </button>
+            )}
+            {project.status === "open" && (
+              <button type="button" onClick={() => handleStatusChange("locked")}
+                className="rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100 transition-colors">
+                Lock Submissions
+              </button>
+            )}
+            {(project.status === "open" || project.status === "locked") && (
+              <button type="button" onClick={() => handleStatusChange("completed")}
+                className="rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors">
+                Mark Completed
+              </button>
+            )}
+            {project.status === "completed" && (
+              <button type="button" onClick={() => handleStatusChange("open")}
+                className="rounded-lg bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors">
+                Re-open
+              </button>
+            )}
+            {project.status === "locked" && (
+              <button type="button" onClick={() => handleStatusChange("open")}
+                className="rounded-lg bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors">
+                Re-open
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Playback controls */}
         <div className="mt-4 flex gap-2">
@@ -255,13 +273,16 @@ export default function ProjectDetailPage() {
         {/* Share + Export section */}
         <div className="mt-4 flex flex-col gap-2">
           <div className="flex gap-2">
-            <ExportButton
-              status={export_.status}
-              audioUrl={export_.audioUrl}
-              workId={export_.work?.id ?? null}
-              onExport={export_.startExport}
-              disabled={filledSlots === 0}
-            />
+            {/* Generate Chorus — owner only (writes to CloudBase) */}
+            {isOwner && (
+              <ExportButton
+                status={export_.status}
+                audioUrl={export_.audioUrl}
+                workId={export_.work?.id ?? null}
+                onExport={export_.startExport}
+                disabled={filledSlots === 0}
+              />
+            )}
             <ShareButton projectId={project.shareId ?? project.id} />
           </div>
         </div>
@@ -273,7 +294,8 @@ export default function ProjectDetailPage() {
           </div>
         )}
 
-        {/* Delete project — MVP: without auth, deletion is not owner-secured */}
+        {/* Delete project — owner only */}
+        {isOwner && (
         <div className="mt-6 border-t border-gray-100 pt-4">
           {deleteError && (
             <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">
@@ -316,6 +338,7 @@ export default function ProjectDetailPage() {
             </div>
           )}
         </div>
+        )}
 
         {/* Lyric lines and voice slots */}
         <div className="mt-6 flex flex-col gap-4 pb-10">

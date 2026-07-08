@@ -55,4 +55,6 @@ export interface ChorusProject {
   status: "draft" | "open" | "locked" | "completed";
   /** Public share identifier — can differ from internal id */
   shareId?: string;
+  /** SHA-256 hash of the owner token. Raw token only in URL/localStorage, never persisted. */
+  ownerTokenHash?: string;
 }

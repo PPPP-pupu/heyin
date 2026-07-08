@@ -6,12 +6,12 @@
 
 打开 EdgeOne 部署链接，点 **Create Chorus Project**：
 
-| 字段 | 填什么 |
-|---|---|
-| Project Title | `十年大合唱（内测）` |
-| Song Name | `十年` |
-| Lyrics | 用陈奕迅《十年》前 4 句 |
-| Voices per Line | 2 |
+| 字段              | 填什么           |
+| --------------- | ------------- |
+| Project Title   | `十年大合唱（内测）`   |
+| Song Name       | `十年`          |
+| Lyrics          | 用陈奕迅《十年》前 4 句 |
+| Voices per Line | 2             |
 
 点 Create。
 

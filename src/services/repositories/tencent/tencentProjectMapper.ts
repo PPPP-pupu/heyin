@@ -62,6 +62,7 @@ export function mapTencentDocsToChorusProject(docs: {
     updatedAt: String(project.updatedAt ?? ""),
     status: String(project.status ?? "open") as ChorusProject["status"],
     shareId: String(project.shareId ?? ""),
+    ownerTokenHash: (project.ownerTokenHash as string) ?? undefined,
   };
 }
 

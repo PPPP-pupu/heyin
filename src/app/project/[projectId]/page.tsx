@@ -58,9 +58,10 @@ export default function ProjectDetailPage() {
   const filledSlots =
     project?.voiceSlots.filter((s) => s.status === "filled").length ?? 0;
 
-  function handleSlotPlay(slot: { submission?: { audioId?: string } }) {
+  function handleSlotPlay(slot: { submission?: { audioId?: string; mixVolume?: number } }) {
     if (slot.submission?.audioId) {
-      playAudioId(slot.submission.audioId);
+      const vol = slot.submission.mixVolume ?? 1;
+      playAudioId(slot.submission.audioId, vol);
     }
   }
 

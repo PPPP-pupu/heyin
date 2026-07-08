@@ -87,6 +87,9 @@ export function createAudioManager(): AudioManager {
       audio.src = url;
     }
     audio.load();
+    // Apply track volume (clamped to 0..1 for HTMLAudioElement; export supports >1)
+    const vol = Math.min(1, Math.max(0, track.volume ?? 1));
+    audio.volume = vol;
     await audio.play().catch(() => {
       // Audio failed — missing file, expired blob URL, autoplay blocked
     });

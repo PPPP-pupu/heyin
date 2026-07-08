@@ -214,7 +214,10 @@ export default function JoinPage() {
   }
 
   function handleSlotPlay(slot: VoiceSlot) {
-    if (slot.submission?.audioId) playAudioId(slot.submission.audioId);
+    if (slot.submission?.audioId) {
+      const vol = slot.submission.mixVolume ?? 1;
+      playAudioId(slot.submission.audioId, vol);
+    }
   }
 
   function handleSlotReRecord(slot: VoiceSlot) {

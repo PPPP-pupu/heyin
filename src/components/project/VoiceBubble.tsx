@@ -79,20 +79,23 @@ export default function VoiceBubble(props: VoiceBubbleProps) {
 
           {/* Owner volume slider */}
           {isOwner && onVolumeChange && (
-            <div className="mt-1 flex items-center gap-2 px-1">
-              <span className="text-xs text-gray-400 w-6 text-right">
-                {Math.round((sub.mixVolume ?? 1) * 100)}%
-              </span>
-              <input
-                type="range"
-                min="0"
-                max="150"
-                value={Math.round((sub.mixVolume ?? 1) * 100)}
-                onChange={(e) => onVolumeChange(slot.id, Number(e.target.value) / 100)}
-                className="h-1 flex-1 accent-indigo-500"
-              />
-              <span className="text-xs text-gray-400">音量</span>
-            </div>
+            <>
+              <div className="mt-1 flex items-center gap-2 px-1">
+                <span className="text-xs text-gray-400 w-6 text-right">
+                  {Math.round((sub.mixVolume ?? 1) * 100)}%
+                </span>
+                <input
+                  type="range"
+                  min="0"
+                  max="150"
+                  value={Math.round((sub.mixVolume ?? 1) * 100)}
+                  onChange={(e) => onVolumeChange(slot.id, Number(e.target.value) / 100)}
+                  className="h-1 flex-1 accent-indigo-500"
+                />
+                <span className="text-xs text-gray-400">音量</span>
+              </div>
+              <p className="px-1 text-xs text-gray-300">影响合唱预览和生成结果。超过 100% 的增强在生成后体现。</p>
+            </>
           )}
 
           {onReRecord && (

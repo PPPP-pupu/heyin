@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Heyin</string>
+    <string name="title_activity_main">Heyin</string>
+    <string name="package_name">com.heyin.app</string>
+    <string name="custom_url_scheme">com.heyin.app</string>
+</resources>

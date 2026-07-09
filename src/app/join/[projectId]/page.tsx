@@ -15,7 +15,7 @@ import { useGuestProfile } from "@/hooks/useGuestProfile";
 import { projectRepository } from "@/services/repositories";
 import { isCloudRepositoryMode } from "@/services/repositories/repositoryMode";
 import { isTencentProvider } from "@/services/repositories/cloudProvider";
-import { playAudioId, clearAudioCache } from "@/utils/audio";
+import { playAudioId, clearAudioCache, preloadAudioIds } from "@/utils/audio";
 import { isUnstableShareOrigin } from "@/utils/publicBaseUrl";
 import type { VoiceSlot } from "@/types/project";
 
@@ -94,6 +94,20 @@ export default function JoinPage() {
       window.removeEventListener("focus", handleVisibility);
     };
   }, [resolvedProjectId, refreshProject]);
+
+  // Preload playable audio after project loads (respects privacy)
+  useEffect(() => {
+    if (!project || !profile) return;
+    const ids: string[] = [];
+    for (const slot of project.voiceSlots) {
+      if (slot.status !== "filled" || !slot.submission?.audioId) continue;
+      const sub = slot.submission;
+      const isSelf = sub.guestId === profile.id;
+      const isPublic = sub.visibility !== "creatorOnly";
+      if (isSelf || isPublic) ids.push(sub.audioId);
+    }
+    if (ids.length > 0) preloadAudioIds(ids);
+  }, [project, profile]);
 
   function handleSaveNickname() {
     const trimmed = gateNickname.trim();
@@ -245,21 +259,37 @@ export default function JoinPage() {
   async function handleSlotDelete(slot: VoiceSlot) {
     if (!project || !profile) return;
     if (slot.status !== "filled" || slot.submission?.guestId !== profile.id) return;
-    if (deletingSlotId) return; // Prevent duplicate clicks
+    if (deletingSlotId) return;
     if (deleteConfirmSlotId !== slot.id) { setDeleteConfirmSlotId(slot.id); return; }
+
     setDeletingSlotId(slot.id);
+    setPlaybackState(null);
+    clearAudioCache(slot.submission?.audioId);
+
+    // Optimistic: immediately update local state — slot becomes empty
+    const prevProject = project;
+    const optimistic = {
+      ...project,
+      voiceSlots: project.voiceSlots.map((s) =>
+        s.id === slot.id
+          ? { ...s, status: "empty" as const, submission: undefined, claimedBy: undefined, claimedAt: undefined }
+          : s
+      ),
+    };
+    setProject(optimistic);
+    setDeleteConfirmSlotId(null);
+    setDeleteSuccessMsg("录音已删除，这个空位已重新开放。");
+    setTimeout(() => setDeleteSuccessMsg(null), 4000);
+
     try {
-      const updated = await projectRepository.deleteSubmission(project, slot.id);
-      clearAudioCache(slot.submission?.audioId);
-      setProject(updated);
-      setDeletingSlotId(null);
-      setDeleteConfirmSlotId(null);
-      setDeleteSuccessMsg("录音已删除，这个空位已重新开放。");
-      setTimeout(() => setDeleteSuccessMsg(null), 4000);
+      await projectRepository.deleteSubmission(prevProject, slot.id);
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : "删除失败，请稍后再试。");
+      // Restore previous state on failure
+      setProject(prevProject);
+      setDeleteSuccessMsg(null);
+      setSubmitError(err instanceof Error ? err.message : "删除失败，已恢复原来的录音，请稍后再试。");
+    } finally {
       setDeletingSlotId(null);
-      setDeleteConfirmSlotId(null);
     }
   }
 

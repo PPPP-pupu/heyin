@@ -41,6 +41,34 @@ export function clearAudioCache(audioId?: string): void {
   }
 }
 
+/** Preload a single audio in the background. Resolves the playable URL and caches it. */
+export async function preloadAudioId(audioId: string): Promise<void> {
+  if (audioUrlCache.has(audioId)) return;
+  try {
+    if (isExternalUrl(audioId)) {
+      audioUrlCache.set(audioId, audioId);
+    } else if (isTencentFileID(audioId)) {
+      const url = await resolveTencentAudioUrl(audioId);
+      audioUrlCache.set(audioId, url);
+    } else if (isCloudRepositoryMode() && isTencentProvider() && isStoragePath(audioId)) {
+      const url = await resolveTencentAudioUrl(audioId);
+      audioUrlCache.set(audioId, url);
+    } else if (isCloudRepositoryMode() && isStoragePath(audioId)) {
+      audioUrlCache.set(audioId, getPublicAudioUrl(audioId));
+    } else {
+      const blob = await loadAudio(audioId);
+      if (blob) audioUrlCache.set(audioId, URL.createObjectURL(blob));
+    }
+  } catch {
+    // Preload failure is non-fatal — will retry on actual play
+  }
+}
+
+/** Preload multiple audio IDs in the background. Does not block. */
+export async function preloadAudioIds(audioIds: string[]): Promise<void> {
+  await Promise.allSettled(audioIds.map(preloadAudioId));
+}
+
 export async function playAudioId(audioIdOrPath: string, options?: number | PlayAudioOptions): Promise<void> {
   const opts: PlayAudioOptions = typeof options === "number" ? { volume: options } : (options ?? {});
 

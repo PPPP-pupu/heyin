@@ -11,7 +11,7 @@ import RecordingModal from "@/components/project/RecordingModal";
 import { useProject } from "@/hooks/useProject";
 import { useRecorder } from "@/features/recording/useRecorder";
 import { useSubmitRecording } from "@/features/recording/useSubmitRecording";
-import { playAudioId } from "@/utils/audio";
+import { playAudioId, preloadAudioIds } from "@/utils/audio";
 import { usePlayback } from "@/features/playback/usePlayback";
 import { useExport } from "@/features/export/useExport";
 import ExportButton from "@/components/project/ExportButton";
@@ -46,6 +46,18 @@ export default function ProjectDetailPage() {
   const export_ = useExport(project);
   const isCloud = isCloudRepositoryMode();
   const { isOwner, isCheckingOwner, ownerWarning } = useOwnerAccess(project, projectId);
+
+  // Preload all filled recordings for owner / playable ones for viewers
+  useEffect(() => {
+    if (!project) return;
+    const ids: string[] = [];
+    for (const slot of project.voiceSlots) {
+      if (slot.status !== "filled" || !slot.submission?.audioId) continue;
+      const sub = slot.submission;
+      if (isOwner || sub.visibility !== "creatorOnly") ids.push(sub.audioId);
+    }
+    if (ids.length > 0) preloadAudioIds(ids);
+  }, [project, isOwner]);
 
   const slotsByLine = project
     ? project.lyricLines.map((line) => ({
@@ -376,9 +388,7 @@ export default function ProjectDetailPage() {
               isOwner={isOwner}
               onVolumeChange={async (slotId, volume) => {
                 if (!project) return;
-                // Live update currently-playing audio
                 playback.updateTrackVolume(slotId, Math.min(1, volume));
-                // Update local state
                 const updated = { ...project, voiceSlots: project.voiceSlots.map(s =>
                   s.id === slotId && s.submission
                     ? { ...s, submission: { ...s.submission, mixVolume: volume } }
@@ -386,6 +396,7 @@ export default function ProjectDetailPage() {
                 )};
                 setProject(updated);
               }}
+              playbackState={playbackState}
             />
           ))}
         </div>

@@ -11,7 +11,7 @@ import RecordingModal from "@/components/project/RecordingModal";
 import { useProject } from "@/hooks/useProject";
 import { useRecorder } from "@/features/recording/useRecorder";
 import { useSubmitRecording } from "@/features/recording/useSubmitRecording";
-import { playAudioId, preloadAudioIds } from "@/utils/audio";
+import { playAudioId, preloadAudioIds, clearAudioCache } from "@/utils/audio";
 import { usePlayback } from "@/features/playback/usePlayback";
 import { useExport } from "@/features/export/useExport";
 import ExportButton from "@/components/project/ExportButton";
@@ -71,6 +71,9 @@ export default function ProjectDetailPage() {
     project?.voiceSlots.filter((s) => s.status === "filled").length ?? 0;
 
   const [playbackState, setPlaybackState] = useState<{ submissionId: string; status: "loading" | "playing" } | null>(null);
+  const [deletingSlotId, setDeletingSlotId] = useState<string | null>(null);
+  const [deleteSuccessMsg, setDeleteSuccessMsg] = useState<string | null>(null);
+  const [deleteConfirmSlotId, setDeleteConfirmSlotId] = useState<string | null>(null);
 
   function handleSlotPlay(slot: { submission?: { audioId?: string; mixVolume?: number; id?: string } }) {
     if (!slot.submission?.audioId) return;
@@ -86,13 +89,35 @@ export default function ProjectDetailPage() {
     });
   }
 
-  async function handleSlotDelete(slot: { id: string }) {
-    if (!project) return;
+  async function handleSlotDelete(slot: { id: string; submission?: { audioId?: string } }) {
+    if (!project || deletingSlotId || !isOwner) return;
+    if (deleteConfirmSlotId !== slot.id) { setDeleteConfirmSlotId(slot.id); return; }
+
+    setDeletingSlotId(slot.id);
+    setPlaybackState(null);
+    clearAudioCache(slot.submission?.audioId);
+
+    const prevProject = project;
+    const optimistic = {
+      ...project,
+      voiceSlots: project.voiceSlots.map((s) =>
+        s.id === slot.id
+          ? { ...s, status: "empty" as const, submission: undefined, claimedBy: undefined, claimedAt: undefined }
+          : s
+      ),
+    };
+    setProject(optimistic);
+    setDeleteConfirmSlotId(null);
+    setDeleteSuccessMsg("录音已删除，这个空位已重新开放。");
+    setTimeout(() => setDeleteSuccessMsg(null), 4000);
+
     try {
-      const updated = await projectRepository.deleteSubmission(project, slot.id);
-      setProject(updated);
+      await projectRepository.deleteSubmission(prevProject, slot.id);
     } catch {
-      // silently fail — slot will refresh on next load
+      setProject(prevProject);
+      setDeleteSuccessMsg(null);
+    } finally {
+      setDeletingSlotId(null);
     }
   }
 
@@ -363,6 +388,13 @@ export default function ProjectDetailPage() {
         </div>
         )}
 
+        {/* Delete success message */}
+        {deleteSuccessMsg && (
+          <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 text-center">
+            {deleteSuccessMsg}
+          </div>
+        )}
+
         {/* Lyric lines and voice slots */}
         <div className="mt-6 flex flex-col gap-4 pb-10">
           {slotsByLine.map(({ line, slots }) => (
@@ -374,7 +406,7 @@ export default function ProjectDetailPage() {
               selectedSlotId={selectedSlot?.id ?? null}
               onSlotSelect={isCloud ? undefined : selectSlot}
               onSlotPlay={handleSlotPlay}
-              onSlotDelete={isCloud ? undefined : handleSlotDelete}
+              onSlotDelete={isOwner ? handleSlotDelete : (isCloud ? undefined : handleSlotDelete)}
               isActive={
                 (playback.state === "playing" || playback.state === "paused")
                   ? line.index === playback.currentLineIndex
@@ -397,6 +429,7 @@ export default function ProjectDetailPage() {
                 setProject(updated);
               }}
               playbackState={playbackState}
+              deletingSlotId={deletingSlotId}
             />
           ))}
         </div>

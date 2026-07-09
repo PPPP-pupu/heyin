@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import AppShell from "@/components/common/AppShell";
 import AppHeader from "@/components/common/AppHeader";

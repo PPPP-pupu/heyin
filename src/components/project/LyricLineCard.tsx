@@ -9,6 +9,8 @@ interface LyricLineCardProps {
   onSlotSelect?: (slot: VoiceSlot) => void;
   onSlotPlay?: (slot: VoiceSlot) => void;
   onSlotDelete?: (slot: VoiceSlot) => void;
+  playbackState?: { submissionId: string; status: "loading" | "playing" } | null;
+  deletingSlotId?: string | null;
   isActive?: boolean;
   isPaused?: boolean;
   currentGuestId?: string;
@@ -25,6 +27,8 @@ export default function LyricLineCard({
   onSlotSelect,
   onSlotPlay,
   onSlotDelete,
+  playbackState,
+  deletingSlotId,
   isActive = false,
   isPaused = false,
   currentGuestId,
@@ -81,6 +85,12 @@ export default function LyricLineCard({
             currentGuestId={currentGuestId}
             isOwner={isOwner}
             onVolumeChange={onVolumeChange}
+            playbackStatus={
+              playbackState && slot.submission?.id === playbackState.submissionId
+                ? playbackState.status
+                : null
+            }
+            isDeleting={deletingSlotId === slot.id}
             onReRecord={
               slot.status === "filled" && onSlotReRecord
                 ? () => onSlotReRecord(slot)

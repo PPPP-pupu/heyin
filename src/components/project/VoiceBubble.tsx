@@ -12,18 +12,18 @@ interface VoiceBubbleProps {
   isPlaying?: boolean;
   isPaused?: boolean;
   onDelete?: () => void;
-  /** Called when user wants to re-record their own filled slot. */
   onReRecord?: () => void;
-  /** Current guest's UUID — used to show "You are recording..." on claimed slots. */
   currentGuestId?: string;
-  /** True if the viewer is the project owner (can manage this slot). */
   isOwner?: boolean;
-  /** Called when owner changes mixVolume on a filled slot. */
   onVolumeChange?: (slotId: string, volume: number) => void;
+  /** Playback state: loading (resolving URL) or playing. */
+  playbackStatus?: "loading" | "playing" | null;
+  /** True while delete is in progress. */
+  isDeleting?: boolean;
 }
 
 export default function VoiceBubble(props: VoiceBubbleProps) {
-  const { slot, onSelect, isSelected, onPlay, isPlaying, isPaused, onDelete, onReRecord, currentGuestId, isOwner, onVolumeChange } = props;
+  const { slot, onSelect, isSelected, onPlay, isPlaying, isPaused, onDelete, onReRecord, currentGuestId, isOwner, onVolumeChange, playbackStatus, isDeleting } = props;
 
   switch (slot.status) {
     // ── Filled: playable with waveform + nickname ──────────
@@ -34,7 +34,13 @@ export default function VoiceBubble(props: VoiceBubbleProps) {
       const isCreatorOnly = sub.visibility === "creatorOnly";
       const canPlay = isOwner || isSelf || !isCreatorOnly;
 
-      const playingClasses = isPlaying ? "ring-2 ring-indigo-400 shadow-md shadow-indigo-200 scale-[1.01]" : "";
+      const statusClasses = playbackStatus === "playing"
+        ? "ring-2 ring-indigo-500 shadow-md shadow-indigo-300/50 scale-[1.02]"
+        : playbackStatus === "loading"
+        ? "ring-2 ring-indigo-300 shadow-sm shadow-indigo-100"
+        : isPlaying
+        ? "ring-2 ring-indigo-400 shadow-md shadow-indigo-200 scale-[1.01]"
+        : "";
       const pausedClasses = isPaused ? "ring-2 ring-amber-300 shadow-md shadow-amber-100" : "";
       return (
         <div className="group relative">
@@ -42,7 +48,7 @@ export default function VoiceBubble(props: VoiceBubbleProps) {
             onClick={canPlay ? onPlay : undefined}
             className={`flex items-center gap-3 rounded-xl px-4 py-3 border transition-all duration-200 ${
               canPlay
-                ? `bg-indigo-50 border-indigo-100 cursor-pointer hover:bg-indigo-100 active:scale-[0.98] ${playingClasses} ${pausedClasses}`
+                ? `bg-indigo-50 border-indigo-100 cursor-pointer hover:bg-indigo-100 active:scale-[0.98] ${statusClasses} ${pausedClasses} ${isDeleting ? "opacity-60 pointer-events-none" : ""}`
                 : "bg-gray-50 border-gray-200 cursor-default"
             }`}
           >
@@ -55,7 +61,19 @@ export default function VoiceBubble(props: VoiceBubbleProps) {
               <div className="flex items-center gap-2">
                 <span className="truncate text-sm font-medium text-gray-900">{sub.nickname}</span>
                 {sub.province && <span className="shrink-0 text-xs text-gray-400">{sub.province}</span>}
-                {isPlaying && <span className="shrink-0 text-xs text-indigo-500 font-medium">播放中</span>}
+                {playbackStatus === "loading" && (
+                  <span className="shrink-0 text-xs text-indigo-400">准备播放…</span>
+                )}
+                {playbackStatus === "playing" && (
+                  <span className="shrink-0 flex items-center gap-1 text-xs text-indigo-500 font-medium">
+                    <span className="relative flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-75" />
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-indigo-500" />
+                    </span>
+                    播放中
+                  </span>
+                )}
+                {isDeleting && <span className="shrink-0 text-xs text-red-400">删除中…</span>}
                 {!canPlay && <span className="shrink-0 text-xs text-gray-400">· 仅创建者可试听</span>}
               </div>
               {canPlay ? (

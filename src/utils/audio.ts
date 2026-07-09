@@ -27,8 +27,36 @@ export interface PlayAudioOptions {
   onError?: () => void;
 }
 
+const audioUrlCache = new Map<string, string>();
+
+/** Clear cached audio URL(s). Call when recording is replaced or deleted. */
+export function clearAudioCache(audioId?: string): void {
+  if (audioId) {
+    const cached = audioUrlCache.get(audioId);
+    if (cached?.startsWith("blob:")) URL.revokeObjectURL(cached);
+    audioUrlCache.delete(audioId);
+  } else {
+    for (const [, u] of audioUrlCache) { if (u.startsWith("blob:")) URL.revokeObjectURL(u); }
+    audioUrlCache.clear();
+  }
+}
+
 export async function playAudioId(audioIdOrPath: string, options?: number | PlayAudioOptions): Promise<void> {
   const opts: PlayAudioOptions = typeof options === "number" ? { volume: options } : (options ?? {});
+
+  // Check cache for resolved URL
+  const cacheKey = audioIdOrPath;
+  const cached = audioUrlCache.get(cacheKey);
+  if (cached && (isExternalUrl(cached) || cached.startsWith("blob:"))) {
+    const audio = new Audio(cached);
+    if (opts.volume !== undefined) audio.volume = Math.min(1, Math.max(0, opts.volume));
+    opts.onStart?.();
+    audio.onended = () => opts.onEnded?.();
+    audio.onerror = () => { audioUrlCache.delete(cacheKey); opts.onError?.(); };
+    await audio.play().catch(() => { audioUrlCache.delete(cacheKey); opts.onError?.(); });
+    return;
+  }
+
   try {
     let url: string;
 
@@ -44,24 +72,17 @@ export async function playAudioId(audioIdOrPath: string, options?: number | Play
       const blob = await loadAudio(audioIdOrPath);
       if (!blob) return;
       url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      if (opts.volume !== undefined) audio.volume = Math.min(1, Math.max(0, opts.volume));
-      opts.onStart?.();
-      audio.onended = () => {
-        URL.revokeObjectURL(url);
-        opts.onEnded?.();
-      };
-      audio.onerror = () => opts.onError?.();
-      await audio.play().catch(() => opts.onError?.());
-      return;
     }
+
+    // Cache the resolved URL for repeat playback
+    if (!url.startsWith("blob:")) audioUrlCache.set(cacheKey, url);
 
     const audio = new Audio(url);
     if (opts.volume !== undefined) audio.volume = Math.min(1, Math.max(0, opts.volume));
     opts.onStart?.();
     audio.onended = () => opts.onEnded?.();
-    audio.onerror = () => opts.onError?.();
-    await audio.play().catch(() => opts.onError?.());
+    audio.onerror = () => { audioUrlCache.delete(cacheKey); opts.onError?.(); };
+    await audio.play().catch(() => { audioUrlCache.delete(cacheKey); opts.onError?.(); });
   } catch {
     opts.onError?.();
   }

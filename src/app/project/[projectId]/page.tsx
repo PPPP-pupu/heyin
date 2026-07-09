@@ -58,11 +58,20 @@ export default function ProjectDetailPage() {
   const filledSlots =
     project?.voiceSlots.filter((s) => s.status === "filled").length ?? 0;
 
-  function handleSlotPlay(slot: { submission?: { audioId?: string; mixVolume?: number } }) {
-    if (slot.submission?.audioId) {
-      const vol = slot.submission.mixVolume ?? 1;
-      playAudioId(slot.submission.audioId, { volume: vol });
-    }
+  const [playbackState, setPlaybackState] = useState<{ submissionId: string; status: "loading" | "playing" } | null>(null);
+
+  function handleSlotPlay(slot: { submission?: { audioId?: string; mixVolume?: number; id?: string } }) {
+    if (!slot.submission?.audioId) return;
+    const subId = slot.submission.id ?? slot.submission.audioId;
+    if (playbackState?.submissionId === subId && playbackState.status === "playing") return;
+    const vol = slot.submission.mixVolume ?? 1;
+    setPlaybackState({ submissionId: subId, status: "loading" });
+    playAudioId(slot.submission.audioId, {
+      volume: vol,
+      onStart: () => setPlaybackState({ submissionId: subId, status: "playing" }),
+      onEnded: () => setPlaybackState(null),
+      onError: () => setPlaybackState(null),
+    });
   }
 
   async function handleSlotDelete(slot: { id: string }) {

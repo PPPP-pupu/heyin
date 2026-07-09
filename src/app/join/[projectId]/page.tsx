@@ -15,7 +15,7 @@ import { useGuestProfile } from "@/hooks/useGuestProfile";
 import { projectRepository } from "@/services/repositories";
 import { isCloudRepositoryMode } from "@/services/repositories/repositoryMode";
 import { isTencentProvider } from "@/services/repositories/cloudProvider";
-import { playAudioId } from "@/utils/audio";
+import { playAudioId, clearAudioCache } from "@/utils/audio";
 import { isUnstableShareOrigin } from "@/utils/publicBaseUrl";
 import type { VoiceSlot } from "@/types/project";
 
@@ -214,10 +214,17 @@ export default function JoinPage() {
   }
 
   function handleSlotPlay(slot: VoiceSlot) {
-    if (slot.submission?.audioId) {
-      const vol = slot.submission.mixVolume ?? 1;
-      playAudioId(slot.submission.audioId, { volume: vol });
-    }
+    if (!slot.submission?.audioId) return;
+    if (playbackState?.submissionId === slot.submission.id && playbackState.status === "playing") return;
+    const subId = slot.submission.id;
+    const vol = slot.submission.mixVolume ?? 1;
+    setPlaybackState({ submissionId: subId, status: "loading" });
+    playAudioId(slot.submission.audioId, {
+      volume: vol,
+      onStart: () => setPlaybackState({ submissionId: subId, status: "playing" }),
+      onEnded: () => setPlaybackState(null),
+      onError: () => setPlaybackState(null),
+    });
   }
 
   function handleSlotReRecord(slot: VoiceSlot) {
@@ -230,21 +237,28 @@ export default function JoinPage() {
     }
   }
 
+  const [playbackState, setPlaybackState] = useState<{ submissionId: string; status: "loading" | "playing" } | null>(null);
   const [deleteConfirmSlotId, setDeleteConfirmSlotId] = useState<string | null>(null);
+  const [deletingSlotId, setDeletingSlotId] = useState<string | null>(null);
   const [deleteSuccessMsg, setDeleteSuccessMsg] = useState<string | null>(null);
 
   async function handleSlotDelete(slot: VoiceSlot) {
     if (!project || !profile) return;
     if (slot.status !== "filled" || slot.submission?.guestId !== profile.id) return;
+    if (deletingSlotId) return; // Prevent duplicate clicks
     if (deleteConfirmSlotId !== slot.id) { setDeleteConfirmSlotId(slot.id); return; }
+    setDeletingSlotId(slot.id);
     try {
       const updated = await projectRepository.deleteSubmission(project, slot.id);
+      clearAudioCache(slot.submission?.audioId);
       setProject(updated);
+      setDeletingSlotId(null);
       setDeleteConfirmSlotId(null);
       setDeleteSuccessMsg("录音已删除，这个空位已重新开放。");
       setTimeout(() => setDeleteSuccessMsg(null), 4000);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "删除失败，请稍后再试。");
+      setDeletingSlotId(null);
       setDeleteConfirmSlotId(null);
     }
   }
@@ -412,6 +426,8 @@ export default function JoinPage() {
         onSlotPlay={handleSlotPlay}
         onSlotReRecord={handleSlotReRecord}
         onSlotDelete={handleSlotDelete}
+        playbackState={playbackState}
+        deletingSlotId={deletingSlotId}
         currentGuestId={profile?.id}
       />
 

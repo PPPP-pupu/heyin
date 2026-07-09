@@ -124,11 +124,18 @@ export default function VoiceBubble(props: VoiceBubbleProps) {
             </button>
           )}
           {onDelete && (
-            <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(); }}
-              className="absolute -top-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-white border border-gray-200 text-gray-400 hover:bg-red-50 hover:text-red-500 hover:border-red-200 opacity-0 group-hover:opacity-100 transition-all shadow-sm"
-              aria-label="删除录音">
-              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 4l8 8M12 4l-8 8" /></svg>
-            </button>
+            isOwner ? (
+              <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                className="mt-1 w-full rounded-lg border border-red-200 bg-white px-3 py-1 text-xs font-medium text-red-500 hover:bg-red-50 transition-colors">
+                {isDeleting ? "删除中…" : "删除录音"}
+              </button>
+            ) : (
+              <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                className="absolute -top-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-white border border-gray-200 text-gray-400 hover:bg-red-50 hover:text-red-500 hover:border-red-200 opacity-0 group-hover:opacity-100 transition-all shadow-sm"
+                aria-label="删除录音">
+                <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 4l8 8M12 4l-8 8" /></svg>
+              </button>
+            )
           )}
         </div>
       );
